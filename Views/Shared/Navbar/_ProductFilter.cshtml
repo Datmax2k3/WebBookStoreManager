@@ -1,0 +1,41 @@
+﻿@model WebBookStoreManage.ViewModels.ProductViewModel
+
+<div class="filter-block card p-3 mb-3">
+    <h3 class="card-title">Lọc theo danh mục</h3>
+    <form id="filterForm">
+        @foreach (var dm in Model.DanhMucs)
+        {
+            <div class="category mb-3">
+                <div class="form-check">
+                    <!-- Gắn data-category-id để dễ thao tác -->
+                    <input class="form-check-input category-checkbox" type="checkbox" name="danhmuc" value="@dm.IdDanhMuc" id="danhmuc_@dm.IdDanhMuc"
+                           data-category-id="@dm.IdDanhMuc"
+                           @(Model.SelectedDanhMuc?.Split(',').Contains(dm.IdDanhMuc.ToString()) == true ? "checked" : "")>
+                    <label class="form-check-label" for="danhmuc_@dm.IdDanhMuc">
+                        @dm.TenDanhMuc
+                    </label>
+                </div>
+                @if (dm.DanhMucChiTiets != null && dm.DanhMucChiTiets.Any())
+                {
+                    <!-- Gói DANHMUCCHITIET trong 1 div có data-parent-category tương ứng -->
+                    <div class="sub-category ml-4 mt-2" data-parent-category="@dm.IdDanhMuc" style="display: none;">
+                        <div class="font-weight-bold mb-1">Chi tiết:</div>
+                        @foreach (var dmc in dm.DanhMucChiTiets)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="danhmucchitiet" value="@dmc.IdDanhMucCT" id="danhmucchitiet_@dmc.IdDanhMucCT"
+                                       @(Model.SelectedDanhMucChiTiet?.Split(',').Contains(dmc.IdDanhMucCT.ToString()) == true ? "checked" : "")>
+                                <label class="form-check-label" for="danhmucchitiet_@dmc.IdDanhMucCT">
+                                    @dmc.TenDanhMucCT
+                                </label>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        <button type="submit" class="btn btn-primary mt-3">Lọc</button>
+    </form>
+</div>
+
+

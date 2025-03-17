@@ -1,0 +1,34 @@
+﻿@model WebBookStoreManage.Models.SANPHAM_TACGIA
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h1>Create</h1>
+
+<h4>SANPHAM_TACGIA</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="IdSanPham" class="control-label"></label>
+                <select asp-for="IdSanPham" class ="form-control" asp-items="ViewBag.IdSanPham"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="IdTacGia" class="control-label"></label>
+                <select asp-for="IdTacGia" class ="form-control" asp-items="ViewBag.IdTacGia"></select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+

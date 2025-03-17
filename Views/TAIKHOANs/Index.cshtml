@@ -1,0 +1,66 @@
+﻿@model IEnumerable<WebBookStoreManage.Models.TAIKHOAN>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table table-responsive w-full rounded">
+    <thead>
+        <tr>
+            <th class="border px-4 py-2">
+                @Html.DisplayNameFor(model => model.TenDangNhap)
+            </th>
+            <th class="border px-4 py-2">
+                @Html.DisplayNameFor(model => model.MatKhau)
+            </th>
+            <th class="border px-4 py-2">
+                @Html.DisplayNameFor(model => model.VaiTro)
+            </th>
+            <th class="border px-4 py-2">
+                @Html.DisplayNameFor(model => model.NguoiDung)
+            </th>
+            <th class="border px-4 py-2">
+                @Html.DisplayNameFor(model => model.NhanVien)
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td class="border px-4 py-2">
+                    @Html.DisplayFor(modelItem => item.TenDangNhap)
+                </td>
+                <td class="border px-4 py-2" style="max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    @Html.DisplayFor(modelItem => item.MatKhau)
+                </td>
+                <td class="border px-4 py-2">
+                    @Html.DisplayFor(modelItem => item.VaiTro.TenVaiTro)
+                </td>
+                <td class="border px-4 py-2">
+                    @Html.DisplayFor(modelItem => item.NguoiDung.Email)
+                </td>
+                <td class="border px-4 py-2">
+                    @Html.DisplayFor(modelItem => item.NhanVien.DienThoai)
+                </td>
+                <td class="border px-4 py-2">
+                    <a asp-action="Details" asp-route-id="@item.IdTaiKhoan" class="bg-teal-300 cursor-pointer rounded p-1 mx-1 text-white" title="Details">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a asp-action="Edit" asp-route-id="@item.IdTaiKhoan" class="bg-teal-300 cursor-pointer rounded p-1 mx-1 text-white" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@item.IdTaiKhoan" class="bg-teal-300 cursor-pointer rounded p-1 mx-1 text-red-500" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

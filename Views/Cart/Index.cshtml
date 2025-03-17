@@ -1,0 +1,74 @@
+﻿@model WebBookStoreManage.ViewModels.CartViewModel
+
+<div class="container p-5" style="background-color: #F5F5F5;">
+    <h1 class="mb-4" style="font-size: 28px; font-weight: 700;">Giỏ hàng</h1>
+
+    @if (Model.CartItems.Any())
+    {
+        <div class="row">
+            <!-- Danh sách sản phẩm trong giỏ hàng -->
+            <div class="col-md-8">
+                @foreach (var item in Model.CartItems)
+                {
+                    <div class="cart-item d-flex justify-content-between align-items-center mb-3 p-3" style="background-color: #FFF; border: 1px solid #DDD;">
+                        <!-- Hình ảnh sản phẩm -->
+                        <div class="product-image">
+                            <img src="@Url.Content("~/images/product/" + item.SanPham.hinhAnh)"
+                                 alt="@item.SanPham.TenSanPham"
+                                 style="width: 80px; height: 120px; object-fit: cover; border: 1px solid #DDD;" />
+                        </div>
+
+                        <!-- Thông tin sản phẩm -->
+                        <div class="product-details" style="flex-grow: 1; margin-left: 15px;">
+                            <h5 style="font-size: 18px; font-weight: bold;">@item.SanPham.TenSanPham</h5>
+                            <p style="font-size: 14px; color: #666;">Tác giả: @(item.SanPham.SanPhamTacGias.FirstOrDefault()?.TacGia.TenTacGia ?? "Không xác định")</p>
+                            <p style="font-size: 14px; color: #666;">Loại: @(item.SanPham.DanhMucChiTiet?.TenDanhMucCT ?? "Không xác định")</p>
+                        </div>
+
+                        <!-- Giá -->
+                        <div class="product-price" style="font-size: 18px; font-weight: bold;">
+                            @((item.SanPham.GiaBan ?? 0).ToString("N0")) đ
+                        </div>
+
+                        <!-- Bộ chọn số lượng -->
+                        <div class="quantity-selector d-flex align-items-center mx-3">
+                            <button class="minus btn" style="width: 30px; height: 30px; background-color: #E0E0E0; border: none;">-</button>
+                            <input type="number"
+                                   value="@item.SoLuong"
+                                   min="1"
+                                   max="@item.SanPham.SoLuongCon"
+                                   data-product-id="@item.IdSanPham"
+                                   style="width: 40px; text-align: center; margin: 0 5px; border: 1px solid #CCC;" />
+                            <button class="plus btn" style="width: 30px; height: 30px; background-color: #E0E0E0; border: none;">+</button>
+                        </div>
+
+                        <!-- Nút xóa -->
+                        <div class="delete-option">
+                            <a href="#" class="text-danger" data-product-id="@item.IdSanPham" style="font-size: 14px;">Xóa</a>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Tóm tắt giỏ hàng -->
+            <div class="col-md-4">
+                <div class="summary-box p-4" style="background-color: #FFF; border: 1px solid #DDD; text-align: center;">
+                    <p style="font-size: 16px;">@Model.TotalQuantity sản phẩm</p>
+                    <p style="font-size: 18px; font-weight: bold;">
+                        Tổng cộng: @Model.TotalCost.ToString("N0") đ
+                        <span style="font-size: 12px; color: #666;">(Chưa có cước vận chuyển)</span>
+                    </p>
+                    <a href="@Url.Action("Checkout", "Order")"
+                       class="btn btn-orange"
+                       style="background-color: #FF6200; color: #FFF; padding: 10px 20px; border-radius: 5px; width: 100%;">
+                        Tiến hành đặt hàng
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p style="font-size: 16px;">Giỏ hàng của bạn đang trống</p>
+    }
+</div>

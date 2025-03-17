@@ -1,0 +1,94 @@
+﻿#chatBubble {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: orange;
+    color: #fff;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    z-index: 9999;
+}
+
+#chatBox {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 300px;
+    height: 400px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    display: none; /* Ẩn khung chat ban đầu */
+    flex-direction: column;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    z-index: 10000;
+}
+
+#chatHeader {
+    background-color: orange;
+    color: #fff;
+    padding: 10px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#chatBody {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+#chatMessages {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-message {
+    margin-bottom: 8px;
+}
+
+    .chat-message.user {
+        text-align: right;
+        color: blue;
+    }
+
+    .chat-message.ai {
+        text-align: left;
+        color: green;
+    }
+
+#chatFooter {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+}
+
+#chatInput {
+    flex: 1;
+    padding: 5px;
+}
+
+#chatSendBtn {
+    background-color: orange;
+    color: #fff;
+    border: none;
+    padding: 0 10px;
+    cursor: pointer;
+}
+
+#chatCloseBtn {
+    background: transparent;
+    color: #fff;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}

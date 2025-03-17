@@ -1,0 +1,29 @@
+﻿@{
+    bool isLoggedIn = User.Identity.IsAuthenticated;
+    string displayName = isLoggedIn ? User.Identity.Name : "Account";
+}
+
+
+@if (!isLoggedIn)
+{
+    <a href="@Url.Action("Login", "Accounts")" class="user-account for-buy">
+        <i class="fas fa-user"></i>
+        <span>@displayName</span>
+    </a>
+}
+else
+{
+    <span class="user-account for-buy">
+        <a href="Thanh Profile thôi" class="dropdown dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="fas fa-user"></i>
+            <span>@displayName</span>
+        </a>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Profile", "Accounts")">Cập nhật tài khoản</a></li>
+            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EditPassword", "Accounts")">Đổi mật khẩu</a></li>
+            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="#">Sản phẩm yêu thích</a></li>
+            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="#">Quên mật khẩu</a></li>
+            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Logout", "Accounts")">Đăng xuất</a></li>
+        </ul>
+    </span>
+}

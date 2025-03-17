@@ -1,0 +1,77 @@
+﻿/* Vùng ảnh chính và gallery */
+.product-detail .main-image {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #eee;
+}
+
+.image-gallery img.thumbnail {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    cursor: pointer;
+    margin-bottom: 5px;
+}
+
+/* Tiêu đề, giá, discount */
+.product-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.original-price {
+    font-size: 1.2rem;
+    font-weight: 500;
+    text-decoration: line-through;
+    color: #888;
+}
+
+.discounted-price {
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.item-discount {
+    margin-top: 0.25rem;
+}
+
+/* Tình trạng */
+.product-status strong {
+    margin-right: 5px;
+}
+
+/* Vùng số lượng */
+.quantity-selector {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px; /* Khoảng cách giữa các nút/input */
+}
+
+.quantity-selector label {
+    margin: 0;
+}
+
+.quantity-selector button {
+    width: 40px;
+    height: 38px;
+    line-height: 1;
+    text-align: center;
+    padding: 0;
+}
+
+.quantity-selector input {
+    text-align: center;
+    width: 60px;
+}
+
+/* Nút thêm vào giỏ và mua ngay */
+.product-actions .btn {
+    min-width: 120px;
+    font-size: 1rem;
+    padding: 10px 16px;
+}
+
+.contact-info p {
+    margin-bottom: 0.5rem;
+}

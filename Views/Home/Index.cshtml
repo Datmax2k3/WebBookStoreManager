@@ -1,0 +1,13 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<body >
+
+    <!--Banner-->
+    @await Html.PartialAsync("PartialView/_Banner")
+    @await Html.PartialAsync("PartialView/_FeaturedBook")
+    @await Html.PartialAsync("PartialView/_BestSellingBook")
+    @await Html.PartialAsync("PartialView/_PopularBook")
+
+</body>

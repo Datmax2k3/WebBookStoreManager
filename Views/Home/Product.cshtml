@@ -1,0 +1,212 @@
+﻿<!-- Views/Home/Product.cshtml -->
+@{
+    ViewData["Title"] = "Sản Phẩm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@model WebBookStoreManage.ViewModels.ProductViewModel
+
+<section id="popular-books" class="bookshelf py-5 my-5" style="margin-top:0 !important; padding-top:0 !important;">
+    <div class="container p-5">
+        <div class="row" style="background-color:#ffffff; ">
+            <div class="col-md-3" style="padding: 0; background-color: #f3f2ed; ">
+                @await Html.PartialAsync("Navbar/_ProductFilter", Model)
+            </div>
+            <div class="col-md-9">
+                <!-- Gọi partial view _NavCategories -->
+                @await Html.PartialAsync("Navbar/_NavCategories", Model.DanhMucs)
+
+                <!-- Container cho sản phẩm -->
+                <div id="productContainer">
+                    @await Html.PartialAsync("_ProductList", Model)
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Cache các phần tử DOM chung
+        const filterForm = document.getElementById('filterForm');
+        const loader = document.getElementById('loader');
+        const productContainer = document.getElementById('productContainer');
+        const navTabs = document.querySelectorAll('.tabs li a');
+        const sortSelect = document.getElementById('sortSelect');
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+
+        // Xử lý sự kiện thay đổi cho checkbox của DANHMUC để hiển thị/ẩn sub-category và không tự động tick checkbox con trong giao diện
+        const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+        categoryCheckboxes.forEach(function (checkbox) {
+            const categoryId = checkbox.getAttribute('data-category-id');
+            const subCategoryDiv = document.querySelector('[data-parent-category="' + categoryId + '"]');
+            // Kiểm tra trạng thái ban đầu
+            if (checkbox.checked && subCategoryDiv) {
+                subCategoryDiv.style.display = 'block';
+            }
+            checkbox.addEventListener('change', function () {
+                const catId = this.getAttribute('data-category-id');
+                const subDiv = document.querySelector('[data-parent-category="' + catId + '"]');
+                if (this.checked) {
+                    if (subDiv) subDiv.style.display = 'block';
+                } else {
+                    if (subDiv) {
+                        subDiv.style.display = 'none';
+                        // Bỏ tick tất cả checkbox con trong sub-category
+                        subDiv.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                    }
+                }
+            });
+        });
+
+        // Hàm chung để gửi AJAX với các tham số filter, sắp xếp và tìm kiếm
+        function applyFilterAndSort() {
+            // Thu thập các giá trị checkbox từ form filter
+            const selectedCategories = Array.from(document.querySelectorAll('input[name="danhmuc"]:checked'))
+                .map(cb => cb.value);
+
+            // Lấy các checkbox DANHMUCCHITIET đã tick (ban đầu)
+            let selectedSubCategories = Array.from(document.querySelectorAll('input[name="danhmucchitiet"]:checked'))
+                .map(cb => cb.value);
+
+            // Với mỗi checkbox DANHMUC được tick, nếu không có checkbox con nào tick, thì lấy tất cả các giá trị con của danh mục đó
+            document.querySelectorAll('input[name="danhmuc"]:checked').forEach(function (parentCheckbox) {
+                const catId = parentCheckbox.getAttribute('data-category-id');
+                const subDiv = document.querySelector('[data-parent-category="' + catId + '"]');
+                if (subDiv) {
+                    const childCheckboxes = Array.from(subDiv.querySelectorAll('input[name="danhmucchitiet"]'));
+                    const isAnyChildTicked = childCheckboxes.some(cb => cb.checked);
+                    if (!isAnyChildTicked) {
+                        // Nếu chưa có checkbox con nào tick, thêm tất cả giá trị của các checkbox con vào mảng
+                        childCheckboxes.forEach(cb => {
+                            if (!selectedSubCategories.includes(cb.value)) {
+                                selectedSubCategories.push(cb.value);
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Lấy giá trị sắp xếp và tìm kiếm từ dropdown và ô nhập liệu
+            const sortValue = sortSelect ? sortSelect.value : "";
+            const keyword = searchInput ? searchInput.value : "";
+
+            // Tạo URL query string
+            const params = new URLSearchParams();
+            if (selectedCategories.length) {
+                params.append('danhmuc', selectedCategories.join(','));
+            }
+            if (selectedSubCategories.length) {
+                params.append('danhmucchitiet', selectedSubCategories.join(','));
+            }
+            if (sortValue) {
+                params.append('sort', sortValue);
+            }
+            if (keyword) {
+                params.append('keyword', keyword);
+            }
+            // Reset trang về 1 khi filter mới
+            params.append('page', 1);
+
+            const url = '/Home/FilterProducts?' + params.toString();
+            if (loader) loader.style.display = 'grid';
+
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => response.text())
+                .then(html => {
+                    if (loader) loader.style.display = 'none';
+                    if (productContainer) productContainer.innerHTML = html;
+
+                    // Cập nhật active class cho navcategories dựa trên selectedCategories
+                    document.querySelectorAll('.tabs li').forEach(li => {
+                        const tabCatId = li.getAttribute('data-category-id');
+                        if (selectedCategories.includes(tabCatId)) {
+                            li.classList.add('active');
+                        } else {
+                            li.classList.remove('active');
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Lỗi khi tải sản phẩm:', error);
+                    if (loader) loader.style.display = 'none';
+                });
+        }
+
+        // Xử lý submit của form filter
+        if (filterForm) {
+            filterForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                // Reset dropdown sắp xếp và ô tìm kiếm
+                if (sortSelect) sortSelect.value = "";
+                if (searchInput) searchInput.value = "";
+                applyFilterAndSort();
+            });
+        }
+
+        // Xử lý submit của form tìm kiếm
+        if (searchForm) {
+            searchForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                applyFilterAndSort();
+            });
+        }
+
+        // Xử lý sự kiện thay đổi cho dropdown sắp xếp
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function () {
+                applyFilterAndSort();
+            });
+        }
+
+        // Xử lý submit của form tìm kiếm
+        if (searchForm) {
+            searchForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                applyFilterAndSort();
+            });
+        }
+
+        // Xử lý click trên các tab navcategories
+        navTabs.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const url = this.getAttribute('href');
+                const catId = this.parentElement.getAttribute('data-category-id');
+
+                // Cập nhật active class cho navcategories
+                document.querySelectorAll('.tabs li').forEach(li => li.classList.remove('active'));
+                this.parentElement.classList.add('active');
+
+                // Reset filter: bỏ tick tất cả checkbox và ẩn sub-category
+                document.querySelectorAll('#filterForm input[type="checkbox"]').forEach(cb => {
+                    cb.checked = false;
+                });
+                document.querySelectorAll('.sub-category').forEach(sub => sub.style.display = 'none');
+
+                // Reset dropdown sắp xếp và ô tìm kiếm
+                if (sortSelect) sortSelect.value = "";
+                if (searchInput) searchInput.value = "";
+
+                // Tick checkbox filter tương ứng với tab được chọn (nếu cần)
+                const filterCheckbox = document.querySelector(`#filterForm input[data-category-id="${catId}"]`);
+                if (filterCheckbox) {
+                    filterCheckbox.checked = true;
+                    const subDiv = document.querySelector('[data-parent-category="' + catId + '"]');
+                    if (subDiv) {
+                        subDiv.style.display = 'block';
+                        // Nếu người dùng không tick riêng các mục con, khi submit hàm applyFilterAndSort() sẽ lấy toàn bộ giá trị con
+                    }
+                }
+
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(response => response.text())
+                    .then(html => {
+                        if (productContainer) productContainer.innerHTML = html;
+                    })
+                    .catch(error => console.error('Error loading products:', error));
+            });
+        });
+    });
+</script>
+

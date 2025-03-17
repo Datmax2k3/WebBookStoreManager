@@ -1,0 +1,27 @@
+﻿@model WebBookStoreManage.Models.SANPHAM_TACGIA
+
+@{
+    ViewData["Title"] = "AddToExcel";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h1>Add to Excel</h1>
+
+<h4>SAN PHAM TAC GIA</h4>
+<hr />
+
+<!-- Hiển thị thông báo thành công hoặc lỗi -->
+@if (TempData["Success"] != null)
+{
+<div class="alert alert-success">@TempData["Success"]</div>}
+@if (TempData["Error"] != null)
+{
+<div class="alert alert-danger">@TempData["Error"]</div>}
+
+<form asp-action="AddToExcel" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="excelFile">Chọn file Excel (*.xlsx, *.xls):</label>
+        <input type="file" name="excelFile" class="form-control" accept=".xlsx,.xls" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Xác nhận</button>
+</form>

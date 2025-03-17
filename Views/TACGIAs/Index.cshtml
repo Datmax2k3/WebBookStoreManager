@@ -1,0 +1,95 @@
+﻿@model IEnumerable<WebBookStoreManage.Models.TACGIA>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+    <a asp-action="AddToExcel">Thêm nhiều tác giả bằng excel</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.TenTacGia)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TenTacGia)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.IdTacGia">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.IdTacGia">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.IdTacGia">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Phần phân trang -->
+<div class="pagination">
+    <!-- Nút "First" (<<) -->
+    @if (ViewBag.CurrentPage > 1)
+    {
+        <a href="@Url.Action("Index", new { page = 1, pageSize = ViewBag.PageSize })"><i class=" fas fa-solid fa-backward"></i></a>
+    }
+
+    <!-- Nút "Previous" (<) -->
+    @if (ViewBag.CurrentPage > 1)
+    {
+        <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1, pageSize = ViewBag.PageSize })"><i class=" fas fa-step-backward"></i></a>
+    }
+
+    <!-- Hiển thị các trang -->
+    @{
+        int startPage = Math.Max(1, ViewBag.CurrentPage - 2);
+        int endPage = Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2);
+
+        // Nếu startPage lớn hơn 1, hiển thị "..."
+        if (startPage > 1)
+        {
+            <span>...</span>
+        }
+
+        for (int i = startPage; i <= endPage; i++)
+        {
+            if (i == ViewBag.CurrentPage)
+            {
+                <span>@i</span>
+            }
+            else
+            {
+                <a href="@Url.Action("Index", new { page = i, pageSize = ViewBag.PageSize })">@i</a>
+            }
+        }
+
+        // Nếu endPage nhỏ hơn TotalPages, hiển thị "..."
+        if (endPage < ViewBag.TotalPages)
+        {
+            <span>...</span>
+        }
+    }
+
+    <!-- Nút "Next" (>) -->
+    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+    {
+        <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1, pageSize = ViewBag.PageSize })"><i class="fas fa-step-forward"></i></a>
+    }
+
+    <!-- Nút "Last" (>>) -->
+    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+    {
+        <a href="@Url.Action("Index", new { page = ViewBag.TotalPages, pageSize = ViewBag.PageSize })"><i class=" fas fa-solid fa-forward"></i></a>
+    }
+</div>

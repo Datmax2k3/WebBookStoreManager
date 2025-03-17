@@ -1,0 +1,45 @@
+﻿@model WebBookStoreManage.Models.DIACHIGIAOHANG
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
+}
+
+<h1>Create</h1>
+
+<h4>DIACHIGIAOHANG</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="HoVaTen" class="control-label"></label>
+                <input asp-for="HoVaTen" class="form-control" />
+                <span asp-validation-for="HoVaTen" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DiaChiGiaoHang" class="control-label"></label>
+                <input asp-for="DiaChiGiaoHang" class="form-control" />
+                <span asp-validation-for="DiaChiGiaoHang" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SdtGiaoHang" class="control-label"></label>
+                <input asp-for="SdtGiaoHang" class="form-control" />
+                <span asp-validation-for="SdtGiaoHang" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="IdNguoiDung" class="control-label"></label>
+                <select asp-for="IdNguoiDung" class ="form-control" asp-items="ViewBag.IdNguoiDung"></select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+

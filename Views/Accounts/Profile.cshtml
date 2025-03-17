@@ -1,0 +1,68 @@
+﻿<link rel="stylesheet" type="text/css" href="~/css/user-css/profile.css">
+@{
+    ViewData["Title"] = "Profile";
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
+}
+
+<h1>Profile</h1>
+<body class="h-screen font-sans login bg-cover">
+    <div style="background-color: var(--light-color);">
+        <div class="container container-profile">
+            <!-- Sidebar bên trái -->
+            @Html.Partial("Navbar/_NavProfile")
+
+            <!-- Nội dung chính -->
+            <div class="main-content">
+                <h2>Cập nhật tài khoản</h2>
+                <form>
+                    <div class="form-group">
+                        <label for="hoten">Họ tên:</label>
+                        <input type="text" id="hoten" name="hoten" placeholder="Nhập họ tên">
+                    </div>
+                    <div class="form-group">
+                        <label for="gioitinh">Giới tính:</label>
+                        <select id="gioitinh" name="gioitinh">
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" placeholder="Nhập email">
+                    </div>
+                    <div class="form-group">
+                        <label for="ngaysinh">Ngày sinh:</label>
+                        <input type="date" id="ngaysinh" name="ngaysinh">
+                    </div>
+                    <div class="form-group">
+                        <label for="dienthoai">Điện thoại:</label>
+                        <input type="text" id="dienthoai" name="dienthoai" placeholder="Nhập số điện thoại">
+                    </div>
+                    <div class="form-group">
+                        <label for="didong">Di động:</label>
+                        <input type="text" id="didong" name="didong" placeholder="Nhập số di động">
+                    </div>
+                    <div class="form-group">
+                        <label for="quocgia">Quốc gia:</label>
+                        <select id="quocgia" name="quocgia">
+                            <option value="Việt Nam">Việt Nam</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tinhthanh">Tỉnh/Thành:</label>
+                        <input type="text" id="tinhthanh" name="tinhthanh" placeholder="VD: Hà Nội">
+                    </div>
+                    <div class="form-group">
+                        <label for="quanhuyen">Quận/Huyện:</label>
+                        <input type="text" id="quanhuyen" name="quanhuyen" placeholder="VD: Hoàn Kiếm">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="submit-btn">Cập nhật</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+    

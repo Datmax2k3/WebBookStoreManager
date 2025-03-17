@@ -1,0 +1,81 @@
+﻿<!--Views/Home/_ProductList.cshtml-->
+@model WebBookStoreManage.ViewModels.ProductViewModel
+
+<div id="productContainer">
+    <div class="row">
+        @foreach (var sanPham in Model.SanPhams)
+        {
+            <div class="col-md-3">
+                <div class="product-item">
+                    <figure class="product-style">
+                        <a href="@Url.Action("ProductDetail", "Home", new { id = sanPham.IdSanPham })">
+                            <img src="@Url.Content("~/images/product/" + sanPham.hinhAnh)" alt="@sanPham.TenSanPham" class="product-item" loading="lazy" />
+                        </a>
+                        <button type="button" class="add-to-cart" data-product-tile="add-to-cart">
+                            Thêm vào giỏ
+                        </button>
+                    </figure>
+                    <figcaption>
+                        <h3>@sanPham.TenSanPham</h3>
+                        <span>@sanPham.DanhMucChiTiet.TenDanhMucCT</span>
+                        <div class="item-price">$ @sanPham.GiaGoc</div>
+                    </figcaption>
+                </div>
+            </div>
+        }
+    </div>
+    <!-- Phân trang -->
+    <div class="pagination text-center mt-3">
+        @Html.Partial("pagination")
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Sự kiện cho các liên kết trong phân trang
+        document.querySelector('#productContainer').addEventListener('click', function (e) {
+            const target = e.target;
+            if (target.tagName.toLowerCase() === 'a' && target.closest('.pagination')) {
+                e.preventDefault();
+                const url = target.getAttribute('href');
+                loadProducts(url);
+            }
+        });
+
+        // Sự kiện cho các liên kết trong navcategories
+        document.querySelectorAll('.tabs li a').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const url = this.getAttribute('href');
+                document.querySelectorAll('.tabs li').forEach(li => li.classList.remove('active'));
+                this.parentElement.classList.add('active');
+                loadProducts(url);
+            });
+        });
+
+        // Hàm tải sản phẩm bằng AJAX
+        function loadProducts(url) {
+            // Hiển thị loader
+            document.getElementById('loader').style.display = 'grid';
+
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.text())
+                .then(html => {
+                    // Ẩn loader
+                    document.getElementById('loader').style.display = 'none';
+
+                    // Thay thế nội dung sản phẩm
+                    document.querySelector('#productContainer').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading products:', error);
+                    // Ẩn loader nếu có lỗi
+                    document.getElementById('loader').style.display = 'none';
+                });
+        }
+    });
+</script>

@@ -1,0 +1,151 @@
+﻿@model WebBookStoreManage.Models.SANPHAM
+
+<div class="container p-5">
+    <div class="product-detail">
+        <div class="row">
+            <!-- Phần bên trái: Hình ảnh sản phẩm -->
+            <div class="col-md-6 product-images">
+                <figure class="product-style">
+                    <!-- Ảnh chính -->
+                    <img src="@Url.Content("~/images/product/" + Model.hinhAnh)"
+                         alt="@Model.TenSanPham"
+                         class="main-image img-fluid mb-3" />
+
+                    <!-- Gallery ảnh phụ -->
+                    @if (Model.HinhAnhSanPhams != null && Model.HinhAnhSanPhams.Any())
+                    {
+                        <div class="image-gallery d-flex flex-wrap">
+                            @foreach (var hinhAnh in Model.HinhAnhSanPhams)
+                            {
+                                <img src="@Url.Content("~/images/product/" + hinhAnh.UrlAnh)"
+                                     alt="Additional Image"
+                                     class="thumbnail img-thumbnail mr-2"
+                                     style="width:80px;height:80px;object-fit:cover;cursor:pointer;" />
+                            }
+                        </div>
+                    }
+                </figure>
+            </div>
+
+            <!-- Phần bên phải: Thông tin chi tiết sản phẩm -->
+            <div class="col-md-6 product-info">
+                <h1 class="product-title">@Model.TenSanPham</h1>
+
+                <div class="product-category text-muted mb-2">
+                    @if (Model.SanPhamTacGias != null && Model.SanPhamTacGias.Any())
+                    {
+                        <span>Tác giả: </span>
+                        @foreach (var tacGia in Model.SanPhamTacGias)
+                        {
+                            <span>@tacGia.TacGia.TenTacGia</span>
+                            if (tacGia != Model.SanPhamTacGias.Last())
+                            {
+                                <span>, </span>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <span>Không có thông tin tác giả</span>
+                    }
+                </div>
+
+                <!-- Hiển thị giá -->
+                <div class="product-price mb-3">
+                    <!-- Giá gốc -->
+                    <span class="original-price">
+                        @Model.GiaGoc.ToString("N0") đ
+                    </span>
+
+                    @if (Model.GiamGia > 0 && Model.GiaBan.HasValue)
+                    {
+                        <!-- Giá đã giảm -->
+                        <span class="discounted-price text-danger ml-3">
+                            @Model.GiaBan.Value.ToString("N0") đ
+                        </span>
+
+                        <div class="item-discount small text-muted">
+                            Tiết kiệm:
+                            @((Model.GiaGoc - Model.GiaBan.Value).ToString("N0")) đ
+                            (@(Model.GiamGia.ToString("N0")) %)
+                        </div>
+                    }
+                </div>
+
+                <!-- Tình trạng sản phẩm -->
+                <div class="product-status mb-2">
+                    <strong>Tình trạng:</strong>
+                    @if (!string.IsNullOrEmpty(Model.TrangThai)
+                        && Model.TrangThai.Equals("Còn Hàng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <span class="text-success ml-1">Còn hàng</span>
+                    }
+                    else
+                    {
+                        <span class="text-danger ml-1">Hết hàng</span>
+                    }
+                </div>
+
+                <!-- Thông tin số lượng, đã bán -->
+                <div class="product-meta mb-3">
+                    <p>Số lượng còn: <strong>@Model.SoLuongCon</strong></p>
+                    <p>Đã bán: <strong>@Model.SoLuongDaBan</strong></p>
+                </div>
+
+                <!-- Chọn số lượng nếu còn hàng -->
+                @if (!string.IsNullOrEmpty(Model.TrangThai)
+                    && Model.TrangThai.Equals("Còn Hàng", StringComparison.OrdinalIgnoreCase))
+                {
+                    <div class="quantity-selector d-flex align-items-center mb-3">
+                        <label class="mr-2 mb-0">Số lượng:</label>
+                        <button class="btn btn-outline-secondary minus">-</button>
+                        <input type="number"
+                               class="form-control mx-1"
+                               value="1"
+                               min="1"
+                               max="@Model.SoLuongCon"
+                               style="width: 60px; margin: 10px 0;" />
+                        <button class="btn btn-outline-secondary plus">+</button>
+                    </div>
+                }
+
+                <!-- Nút Thêm vào giỏ & Mua ngay -->
+                <div class="product-actions mb-3">
+                    @if (!string.IsNullOrEmpty(Model.TrangThai)
+                        && Model.TrangThai.Equals("Còn Hàng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <button type="button" class="btn btn-primary mr-2 add-to-cart" data-product-id="@Model.IdSanPham">
+                            Thêm vào giỏ
+                        </button>
+                        <button type="button" class="btn btn-danger buy-now" data-product-id="@Model.IdSanPham">
+                            Mua ngay
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-secondary" disabled>Hết hàng</button>
+                    }
+                </div>
+
+                <!-- Thông tin liên hệ, khuyến mãi -->
+                <div class="contact-info mt-4">
+                    <p>Gọi đặt hàng: <strong>(028) 3820 7153</strong> hoặc <strong>0933 109 009</strong></p>
+                    <p><strong>Thông tin & Khuyến mãi</strong></p>
+                    <ul class="list-unstyled">
+                        <li>Đổi trả hàng trong vòng 7 ngày</li>
+                        <li>Freeship nội thành Sài Gòn từ 150.000đ</li>
+                        <li>Freeship toàn quốc từ 250.000đ</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mô tả chi tiết sản phẩm -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h3>Giới thiệu sản phẩm</h3>
+                <p>@Model.MoTaChiTiet</p>
+            </div>
+        </div>
+    </div>
+</div>
