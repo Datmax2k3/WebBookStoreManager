@@ -1,8 +1,14 @@
-﻿@{
+﻿@model WebBookStoreManage.ViewModels.CartViewModel
+
+@using WebBookStoreManage.Data
+@using WebBookStoreManage.Models
+@using Microsoft.EntityFrameworkCore
+
+@{
     bool isLoggedIn = User.Identity.IsAuthenticated;
     string displayName = isLoggedIn ? User.Identity.Name : "Account";
+    string cartUrl = isLoggedIn ? "/Cart/" : "/Accounts/Login";
 }
-
 
 @if (!isLoggedIn)
 {
@@ -14,16 +20,26 @@
 else
 {
     <span class="user-account for-buy">
-        <a href="Thanh Profile thôi" class="dropdown dropdown-toggle" data-bs-toggle="dropdown">
+        <a href="@Url.Action("Profile", "Accounts")" class="dropdown dropdown-toggle" data-bs-toggle="dropdown">
             <i class="fas fa-user"></i>
             <span>@displayName</span>
         </a>
         <ul class="dropdown-menu">
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Profile", "Accounts")">Cập nhật tài khoản</a></li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EditPassword", "Accounts")">Đổi mật khẩu</a></li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="#">Sản phẩm yêu thích</a></li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="#">Quên mật khẩu</a></li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Logout", "Accounts")">Đăng xuất</a></li>
+            <li style="padding-right: 0 !important;"><a class="dropdown-item"  href="@Url.Action("Profile", "Accounts")">Thông tin tài khoản</a></li>
+            <li style="padding-right: 0 !important;"><a class="dropdown-item"  href="@Url.Action("EditPassword", "Accounts")">Đổi mật khẩu</a></li>
+            <li style="padding-right: 0 !important;"><a class="dropdown-item"  href="@Url.Action("OrderManagement", "Order")">Thông tin đơn hàng</a></li>
+            <li style="padding-right: 0 !important;"><a class="dropdown-item"  href="@Url.Action("Logout", "Accounts")">Đăng xuất</a></li>
         </ul>
     </span>
+
+    <!-- Nút giỏ hàng với tổng tiền -->
+    {
+        var cartModel = ViewBag.CartSummary as WebBookStoreManage.ViewModels.CartViewModel;
+        string cartText = cartModel != null ? cartModel.TotalCost.ToString("N0") : "0";
+        <a href="@Url.Action("Index", "Cart")" class="cart for-buy">
+            <i class="fas fa-clipboard"></i>
+            <span>Cart: @cartText đ</span>
+        </a>
+    }
 }
+

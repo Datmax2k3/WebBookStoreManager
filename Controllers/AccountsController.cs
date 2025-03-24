@@ -124,10 +124,188 @@ namespace WebBookStoreManage.Controllers
             return RedirectToAction("Login", "Accounts");
         }
 
+        // GET: Profile – hiển thị thông tin cá nhân
         [HttpGet]
-        public IActionResult Profile()
+        public async Task<IActionResult> Profile()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var idTaiKhoanStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idTaiKhoanStr, out int idTaiKhoan))
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var account = await _context.TAIKHOAN
+                .Include(a => a.NguoiDung)
+                .FirstOrDefaultAsync(a => a.IdTaiKhoan == idTaiKhoan);
+
+            if (account == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            if (account.NguoiDung == null)
+            {
+                return RedirectToAction("CreateProfile");
+            }
+
+            return View(account.NguoiDung);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateProfile()
+        {
+            if (!User.Identity.IsAuthenticated)
+                return RedirectToAction("Login");
+
+            var idTaiKhoanStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idTaiKhoanStr, out int idTaiKhoan))
+                return RedirectToAction("Login");
+
+            // Kiểm tra nếu đã có profile thì chuyển đến Profile
+            var user = await _context.NGUOIDUNG.FirstOrDefaultAsync(u => u.IdTaiKhoan == idTaiKhoan);
+            if (user != null && !string.IsNullOrEmpty(user.TenNguoiDung))
+                return RedirectToAction("Profile");
+
+            // Nếu chưa có profile, tạo một model mới
+            var model = new NGUOIDUNG();
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateProfile(NGUOIDUNG model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var idTaiKhoanStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idTaiKhoanStr, out int idTaiKhoan))
+            {
+                return RedirectToAction("Login");
+            }
+
+            // Kiểm tra xem hồ sơ của người dùng này đã tồn tại chưa
+            var existingUser = await _context.NGUOIDUNG.FirstOrDefaultAsync(u => u.IdTaiKhoan == idTaiKhoan);
+            if (existingUser != null)
+            {
+                // Nếu đã có hồ sơ thì chuyển hướng đến trang Profile
+                return RedirectToAction("Profile");
+            }
+
+            // Nếu chưa có, tạo mới hồ sơ
+            // Email và các trường khác sẽ được nhập từ form (đảm bảo email được điền đầy đủ)
+            model.IdTaiKhoan = idTaiKhoan; // gán IdTaiKhoan từ Claims vào model
+            _context.NGUOIDUNG.Add(model);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Profile");
+        }
+
+
+        // GET: EditProfile – hiển thị form cập nhật thông tin cá nhân
+        [HttpGet]
+        public async Task<IActionResult> EditProfile()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var idTaiKhoanStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idTaiKhoanStr, out int idTaiKhoan))
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var account = await _context.TAIKHOAN
+                .Include(a => a.NguoiDung)
+                .FirstOrDefaultAsync(a => a.IdTaiKhoan == idTaiKhoan);
+
+            if (account == null)
+            {
+                return RedirectToAction("Accounts", "Login");
+            }
+
+            return View(account.NguoiDung);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProfile(NGUOIDUNG model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Tải người dùng từ DB theo ID (đảm bảo ID không bị thay đổi)
+            var userInDb = await _context.NGUOIDUNG.FirstOrDefaultAsync(u => u.IdNguoiDung == model.IdNguoiDung);
+            if (userInDb == null)
+            {
+                return NotFound();
+            }
+
+            // Cập nhật các trường cần thiết, nhưng không cập nhật email
+            userInDb.TenNguoiDung = model.TenNguoiDung;
+            userInDb.soDienThoai = model.soDienThoai;
+            userInDb.DiaChi = model.DiaChi;
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Profile");
+        }
+
+
+        // GET: EditPassword – hiển thị form cập nhật mật khẩu
+        [HttpGet]
+        public IActionResult EditPassword()
         {
             return View();
+        }
+
+        // POST: EditPassword – cập nhật mật khẩu
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditPassword(string currentPassword, string newPassword, string confirmPassword)
+        {
+            if (newPassword != confirmPassword)
+            {
+                TempData["PasswordError"] = "Mật khẩu mới và mật khẩu xác nhận không khớp";
+                return View();
+            }
+
+            var idTaiKhoanStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idTaiKhoanStr, out int idTaiKhoan))
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var account = await _context.TAIKHOAN.FirstOrDefaultAsync(a => a.IdTaiKhoan == idTaiKhoan);
+            if (account == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var passwordService = new PasswordService.PasswordService();
+            if (!passwordService.VerifyPassword(account.MatKhau, currentPassword))
+            {
+                TempData["PasswordError"] = "Mật khẩu hiện tại không đúng";
+                return View();
+            }
+
+            account.MatKhau = passwordService.HashPassword(newPassword);
+            _context.TAIKHOAN.Update(account);
+            await _context.SaveChangesAsync();
+
+            TempData["PasswordSuccess"] = "Đổi mật khẩu thành công";
+            return RedirectToAction("EditPassword");
         }
 
     }

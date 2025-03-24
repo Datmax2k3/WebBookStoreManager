@@ -29,6 +29,9 @@ namespace WebBookStoreManage.Models
         [Column("diaChi")]
         public string? DiaChi { get; set; }
 
+        [StringLength(11)]
+        public string? soDienThoai { get; set; }
+
         [Required]
         [Column("ngayDangKy")]
         public DateTime NgayDangKy { get; set; } = DateTime.Now;

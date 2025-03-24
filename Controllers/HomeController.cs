@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using WebBookStoreManage.Data;
 using WebBookStoreManage.Models;
@@ -22,12 +23,37 @@ namespace WebBookStoreManage.Controllers
         {
             _context = context;
         }
-        
 
-        public IActionResult Index()
+
+        public async Task<IActionResult> Index()
         {
-            return View();
+            CartViewModel cartModel = new CartViewModel
+            {
+                CartItems = new List<GIOHANG>(),
+                TotalCost = 0,
+                TotalQuantity = 0
+            };
+
+            if (User.Identity.IsAuthenticated && int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int idTaiKhoan))
+            {
+                var nguoiDung = await _context.NGUOIDUNG.FirstOrDefaultAsync(n => n.IdTaiKhoan == idTaiKhoan);
+                if (nguoiDung != null)
+                {
+                    int userId = nguoiDung.IdNguoiDung;
+                    var cartItems = await _context.GIOHANG
+                        .Include(g => g.SanPham)
+                        .Where(g => g.IdNguoiDung == userId)
+                        .ToListAsync();
+
+                    cartModel.TotalQuantity = cartItems.Sum(g => g.SoLuong);
+                    cartModel.TotalCost = cartItems.Sum(g => (g.SanPham.GiaBan ?? 0) * g.SoLuong);
+                    cartModel.CartItems = cartItems;
+                }
+            }
+            ViewBag.CartSummary = cartModel;
+            return View(cartModel);
         }
+
 
         public IActionResult Privacy()
         {

@@ -1,0 +1,47 @@
+﻿@model WebBookStoreManage.Models.NGUOIDUNG
+@{
+    ViewData["Title"] = "Cập nhật thông tin cá nhân";
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
+}
+
+<body class="h-screen font-sans login bg-cover">
+    <div style="background-color: var(--light-color);">
+        <div class="container container-profile">
+            <!-- Sidebar bên trái -->
+            @Html.Partial("Navbar/_NavProfile")
+
+            <!-- Nội dung chính -->
+            <div class="main-content">
+                <h1>Cập nhật thông tin cá nhân</h1>
+
+                <form asp-action="EditProfile" method="post">
+                    <!-- Trường ẩn chứa IdNguoiDung -->
+                    <input type="hidden" asp-for="IdNguoiDung" />
+                    <div class="form-group">
+                        <label>Họ tên:</label>
+                        <input asp-for="TenNguoiDung" class="form-control" />
+                        <span asp-validation-for="TenNguoiDung" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input asp-for="Email" class="form-control" readonly />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Số điện thoại:</label>
+                        <input asp-for="soDienThoai" class="form-control" />
+                        <span asp-validation-for="soDienThoai" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Địa chỉ:</label>
+                        <input asp-for="DiaChi" class="form-control" />
+                        <span asp-validation-for="DiaChi" class="text-danger"></span>
+                    </div>
+                    <!-- Bạn có thể thêm các trường khác nếu cần -->
+                    <button type="submit" class="btn btn-primary mt-3">Lưu thông tin</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+

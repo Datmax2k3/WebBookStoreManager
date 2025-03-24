@@ -1,0 +1,105 @@
+﻿@model WebBookStoreManage.ViewModels.PaymentViewModel
+
+@{
+    ViewData["Title"] = "Thanh toán";
+}
+
+<!-- Header -->
+<header class="d-flex justify-content-between align-items-center py-3 border-bottom">
+    <div class="logo">
+        <h3 style="color: orange;">Bookbuy.vn</h3>
+    </div>
+    <div class="steps">
+        <span class="step text-muted">1. Điền thông tin</span>
+        <span class="step text-dark fw-bold">2. Thanh toán & Hoàn tất</span>
+    </div>
+    <div class="hotline">
+        <i class="fa fa-phone" style="color: orange;"></i> 0933 109 009
+    </div>
+</header>
+
+<div class="container mt-4">
+    <form asp-action="PlaceOrder" method="post">
+        <div class="row">
+            <!-- Left Section -->
+            <div class="col-md-8">
+                <h2 class="text-uppercase fw-bold">Phương thức vận chuyển</h2>
+                <div class="form-group mb-3">
+                    <label class="d-block">
+                        <input type="radio" name="ShippingMethod" value="standard" checked> Chuyển thường (25.000đ)
+                    </label>
+                    <label class="d-block">
+                        <input type="radio" name="ShippingMethod" value="express"> Chuyển nhanh (50.000đ)
+                    </label>
+                </div>
+
+                <h2 class="text-uppercase fw-bold">Phương thức thanh toán</h2>
+                <div class="form-group mb-3">
+                    <label class="d-block">
+                        <input type="radio" name="PaymentMethod" value="cod" checked> Ship COD
+                    </label>
+                    <label class="d-block">
+                        <input type="radio" name="PaymentMethod" value="bank"> Chuyển khoản ngân hàng
+                    </label>
+                    <!-- Input ẩn để truyền ID địa chỉ -->
+                    <input type="hidden" name="DeliveryAddress.IdDiaChi" value="@Model.DeliveryAddress.IdDiaChi" />
+                </div>
+
+                <h2 class="text-uppercase fw-bold">Thông tin khác</h2>
+                <div class="form-group mb-3">
+                    <textarea class="form-control" asp-for="Note" placeholder="Ghi chú cho Bookbuy"></textarea>
+                </div>
+            </div>
+
+            <!-- Right Section -->
+            <div class="col-md-4">
+                <h2 class="fw-bold">Giao hàng đến</h2>
+                <p>@Model.DeliveryAddress.HoVaTen</p>
+                <p>@Model.DeliveryAddress.DiaChiGiaoHang</p>
+                <p>@Model.DeliveryAddress.SdtGiaoHang - @Model.Shoppers.Email</p>
+                <a href="@Url.Action("Checkout", "Order")" class="text-primary">Sửa</a>
+
+                <h2 class="fw-bold">Đơn hàng (@Model.CartItems.Count() sản phẩm)</h2>
+                <ul class="list-unstyled">
+                    @foreach (var item in Model.CartItems)
+                    {
+                        <li>@item.SoLuong x @item.SanPham.TenSanPham - @((item.SanPham.GiaBan ?? 0).ToString("N0"))đ</li>
+                    }
+                </ul>
+                <p>Tiền hàng: @Model.Subtotal.ToString("N0")đ</p>
+                <p>Phí vận chuyển: <span id="shippingFeeDisplay">Chưa có</span></p>
+                <p class="fw-bold" style="color: orange;" id="totalDisplay">Tổng cộng: @Model.Total.ToString("N0")đ</p>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12 d-flex justify-content-between">
+                <a href="@Url.Action("Checkout", "Order")" class="btn btn-link text-muted">QUAY LẠI</a>
+                <button type="submit" class="btn btn-warning text-white">ĐẶT MUA</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Hàm cập nhật phí vận chuyển và tổng tiền
+        function updateFee() {
+            var shippingMethod = document.querySelector('input[name="ShippingMethod"]:checked').value;
+            var shippingFee = (shippingMethod === "standard") ? 25000 : 50000;
+            document.getElementById("shippingFeeDisplay").innerText = shippingFee.toLocaleString() + "đ";
+
+            var subtotal = @Model.Subtotal;
+            var total = subtotal + shippingFee;
+            document.getElementById("totalDisplay").innerText = "Tổng cộng: " + total.toLocaleString() + "đ";
+        }
+
+        document.querySelectorAll('input[name="ShippingMethod"]').forEach(function (elem) {
+            elem.addEventListener("change", updateFee);
+        });
+
+        updateFee();
+    </script>
+}

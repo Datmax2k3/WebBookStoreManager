@@ -7,7 +7,7 @@
     {
         <div class="row">
             <!-- Danh sách sản phẩm trong giỏ hàng -->
-            <div class="col-md-8">
+            <div class="col-md-9">
                 @foreach (var item in Model.CartItems)
                 {
                     <div class="cart-item d-flex justify-content-between align-items-center mb-3 p-3" style="background-color: #FFF; border: 1px solid #DDD;">
@@ -15,14 +15,14 @@
                         <div class="product-image">
                             <img src="@Url.Content("~/images/product/" + item.SanPham.hinhAnh)"
                                  alt="@item.SanPham.TenSanPham"
-                                 style="width: 80px; height: 120px; object-fit: cover; border: 1px solid #DDD;" />
+                                 style="width: 200px; object-fit: cover; border: 1px solid #DDD;" />
                         </div>
 
                         <!-- Thông tin sản phẩm -->
                         <div class="product-details" style="flex-grow: 1; margin-left: 15px;">
                             <h5 style="font-size: 18px; font-weight: bold;">@item.SanPham.TenSanPham</h5>
                             <p style="font-size: 14px; color: #666;">Tác giả: @(item.SanPham.SanPhamTacGias.FirstOrDefault()?.TacGia.TenTacGia ?? "Không xác định")</p>
-                            <p style="font-size: 14px; color: #666;">Loại: @(item.SanPham.DanhMucChiTiet?.TenDanhMucCT ?? "Không xác định")</p>
+                            <p style="font-size: 14px; color: #666;">Loại: @(item.SanPham.DanhMucChiTiet.TenDanhMucCT ?? "Không xác định")</p>
                         </div>
 
                         <!-- Giá -->
@@ -32,14 +32,14 @@
 
                         <!-- Bộ chọn số lượng -->
                         <div class="quantity-selector d-flex align-items-center mx-3">
-                            <button class="minus btn" style="width: 30px; height: 30px; background-color: #E0E0E0; border: none;">-</button>
+                            <button class="minus-cart btn" style="width: 30px; height: 30px; background-color: #E0E0E0; border: none;">-</button>
                             <input type="number"
                                    value="@item.SoLuong"
                                    min="1"
                                    max="@item.SanPham.SoLuongCon"
                                    data-product-id="@item.IdSanPham"
-                                   style="width: 40px; text-align: center; margin: 0 5px; border: 1px solid #CCC;" />
-                            <button class="plus btn" style="width: 30px; height: 30px; background-color: #E0E0E0; border: none;">+</button>
+                                   style=" text-align: center; margin: 0 5px; border: 1px solid #CCC; padding:0;" />
+                            <button class="plus-cart btn" style="width: 30px; height: 30px; background-color: #E0E0E0; border: none;">+</button>
                         </div>
 
                         <!-- Nút xóa -->
@@ -50,8 +50,10 @@
                 }
             </div>
 
+
+
             <!-- Tóm tắt giỏ hàng -->
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="summary-box p-4" style="background-color: #FFF; border: 1px solid #DDD; text-align: center;">
                     <p style="font-size: 16px;">@Model.TotalQuantity sản phẩm</p>
                     <p style="font-size: 18px; font-weight: bold;">

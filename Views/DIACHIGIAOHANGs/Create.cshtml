@@ -1,45 +1,119 @@
 ﻿@model WebBookStoreManage.Models.DIACHIGIAOHANG
-
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Thêm địa chỉ giao hàng mới";
     Layout = "~/Views/Shared/_AccountLayout.cshtml";
 }
 
-<h1>Create</h1>
+<div class="container p-5">
+    <h2>Thêm địa chỉ giao hàng mới</h2>
 
-<h4>DIACHIGIAOHANG</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="HoVaTen" class="control-label"></label>
-                <input asp-for="HoVaTen" class="form-control" />
-                <span asp-validation-for="HoVaTen" class="text-danger"></span>
+    <form asp-action="Create" method="post">
+        <!-- ID Người dùng (ẩn) -->
+        <div class="form-group" hidden>
+            <label>ID Người dùng:</label>
+            <input asp-for="IdNguoiDung" class="form-control" readonly />
+        </div>
+
+        <div class="form-group">
+            <label>Họ tên *</label>
+            <input asp-for="HoVaTen" class="form-control" required />
+            <span asp-validation-for="HoVaTen" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label>Số điện thoại *</label>
+            <input asp-for="SdtGiaoHang" class="form-control" required />
+            <span asp-validation-for="SdtGiaoHang" class="text-danger"></span>
+        </div>
+
+        <div class="select-group" style="width: 70%;">
+            <div class="select-menu">
+                <div class="select" id="province" onclick="toggleOptions('provinceOptions')">
+                    <span id="provinceSelected">Tỉnh/Thành Phố</span>
+                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                </div>
+                <div class="options-list" id="provinceOptions">
+                    <!-- Add your province options here -->
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="DiaChiGiaoHang" class="control-label"></label>
-                <input asp-for="DiaChiGiaoHang" class="form-control" />
-                <span asp-validation-for="DiaChiGiaoHang" class="text-danger"></span>
+            <div class="select-menu">
+                <div class="select" id="district" onclick="toggleOptions('districtOptions')">
+                    <span id="districtSelected">Quận/Huyện</span>
+                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                </div>
+                <div class="options-list" id="districtOptions">
+                    <!-- Add your district options here -->
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="SdtGiaoHang" class="control-label"></label>
-                <input asp-for="SdtGiaoHang" class="form-control" />
-                <span asp-validation-for="SdtGiaoHang" class="text-danger"></span>
+            <div class="select-menu">
+                <div class="select" id="ward" onclick="toggleOptions('wardOptions')">
+                    <span id="wardSelected">Xã/Phường</span>
+                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                </div>
+                <div class="options-list" id="wardOptions">
+                    <!-- Add your ward options here -->
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="IdNguoiDung" class="control-label"></label>
-                <select asp-for="IdNguoiDung" class ="form-control" asp-items="ViewBag.IdNguoiDung"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label">Số nhà/thôn</label>
+            <input class="form-control" id="soNha" />
+            <span class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="DiaChiGiaoHang" class="control-label">Địa chỉ</label>
+            <input asp-for="DiaChiGiaoHang" class="form-control" id="diaChi" readonly />
+            <span asp-validation-for="DiaChiGiaoHang" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Lưu địa chỉ</button>
+    </form>
 </div>
+<!-- CSS cần thiết -->
+<style>
+    .options-list {
+        display: none;
+    }
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+    .options-list.active {
+        display: block;
+    }
+    .select-menu { position: relative; }
+    .select { border: 1px solid #ccc; padding: 8px; cursor: pointer; }
+    .options-list { display: none; position: absolute; background: white; border: 1px solid #ccc; width: 100%; max-height: 200px; overflow-y: auto; z-index: 1000; }
+    .options-list.active { display: block; }
+    .option { padding: 8px; }
+    .option:hover { background: #f0f0f0; }
+    .selected { background: #007bff; color: white; }
+    .fa-angle-down, .fa-angle-up { float: right; }
+</style>
 
+<!-- Thêm jQuery và FontAwesome -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+<script>
+    function toggleOptions(id) {
+        const optionsList = document.getElementById(id);
+        optionsList.style.display = optionsList.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function selectOption(group, value) {
+        document.getElementById(group + 'Selected').innerText = value;
+        document.getElementById(group + 'Options').style.display = 'none';
+        updateAddress();
+    }
+
+    function updateAddress() {
+        const soNha = document.getElementById('soNha').value;
+        const province = document.getElementById('provinceSelected').innerText;
+        const district = document.getElementById('districtSelected').innerText;
+        const ward = document.getElementById('wardSelected').innerText;
+
+        const diaChi = `${soNha}, ${ward}, ${district}, ${province}`;
+        document.getElementById('diaChi').value = diaChi;
+        document.getElementById('diaChiGiaoHang').value = diaChi;
+    }
+
+    document.getElementById('soNha').addEventListener('input', updateAddress);
+</script>

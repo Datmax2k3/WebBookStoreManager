@@ -21,32 +21,45 @@ namespace WebBookStoreManage.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            // Lấy IdTaiKhoan từ claim
-            var idTaiKhoan = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            // Kiểm tra nếu người dùng chưa đăng nhập thì chuyển hướng sang trang đăng nhập
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            // Lấy IdTaiKhoan từ Claim, dùng int.TryParse để tránh lỗi parse
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int idTaiKhoan))
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
 
             // Tìm NGUOIDUNG dựa trên IdTaiKhoan
-            var nguoiDung = _context.NGUOIDUNG.FirstOrDefault(n => n.IdTaiKhoan == idTaiKhoan);
+            var nguoiDung = await _context.NGUOIDUNG.FirstOrDefaultAsync(n => n.IdTaiKhoan == idTaiKhoan);
             if (nguoiDung == null)
             {
-                // Nếu không tìm thấy NGUOIDUNG, chuyển hướng về trang chủ hoặc xử lý lỗi
+                // Nếu không tìm thấy NGUOIDUNG, chuyển hướng về trang chủ
                 return RedirectToAction("Index", "Home");
             }
 
-            var userId = nguoiDung.IdNguoiDung;
+            int userId = nguoiDung.IdNguoiDung;
 
-            // Lấy danh sách các mục trong giỏ hàng
-            var cartItems = _context.GIOHANG
+            // Lấy danh sách các mục trong giỏ hàng theo người dùng hiện tại
+            var cartItems = await _context.GIOHANG
                 .Include(g => g.SanPham)
                     .ThenInclude(s => s.SanPhamTacGias)
                         .ThenInclude(st => st.TacGia)
+                .Include(g => g.SanPham)
+                    .ThenInclude(s => s.DanhMucChiTiet)
                 .Where(g => g.IdNguoiDung == userId)
-                .ToList();
+                .ToListAsync();
 
-            var totalQuantity = cartItems.Sum(g => g.SoLuong);
-            var totalCost = cartItems.Sum(g => (g.SanPham.GiaBan ?? 0) * g.SoLuong);
+            // Tính tổng số lượng và tổng chi phí
+            int totalQuantity = cartItems.Sum(g => g.SoLuong);
+            decimal totalCost = cartItems.Sum(g => (g.SanPham.GiaBan ?? 0) * g.SoLuong);
 
+            // Khởi tạo view model, đảm bảo luôn có dữ liệu (có thể là danh sách rỗng nếu giỏ hàng trống)
             var viewModel = new CartViewModel
             {
                 CartItems = cartItems,
@@ -132,5 +145,76 @@ namespace WebBookStoreManage.Controllers
             public int Quantity { get; set; }
         }
 
+        [HttpPost]
+        public IActionResult UpdateCart([FromBody] UpdateCartRequest request)
+        {
+            Console.WriteLine($"Cập nhật giỏ hàng cho sản phẩm: {request.ProductId}, số lượng: {request.Quantity}");
+            var idTaiKhoan = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var nguoiDung = _context.NGUOIDUNG.FirstOrDefault(n => n.IdTaiKhoan == idTaiKhoan);
+            if (nguoiDung == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng." });
+            }
+
+            var cartItem = _context.GIOHANG.FirstOrDefault(g => g.IdNguoiDung == nguoiDung.IdNguoiDung && g.IdSanPham == request.ProductId);
+            if (cartItem == null)
+            {
+                return Json(new { success = false, message = "Sản phẩm không tồn tại trong giỏ hàng." });
+            }
+
+            cartItem.SoLuong = request.Quantity;
+            _context.SaveChanges();
+
+            var cartItems = _context.GIOHANG
+                .Include(g => g.SanPham)
+                .Where(g => g.IdNguoiDung == nguoiDung.IdNguoiDung)
+                .ToList();
+
+            var totalQuantity = cartItems.Sum(g => g.SoLuong);
+            var totalCost = cartItems.Sum(g => (g.SanPham.GiaBan ?? 0) * g.SoLuong);
+
+            return Json(new { success = true, totalQuantity = totalQuantity, totalCost = totalCost });
+        }
+
+        public class UpdateCartRequest
+        {
+            public string ProductId { get; set; }
+            public int Quantity { get; set; }
+        }
+
+        [HttpPost]
+        public IActionResult RemoveFromCart([FromBody] RemoveFromCartRequest request)
+        {
+            var idTaiKhoan = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var nguoiDung = _context.NGUOIDUNG.FirstOrDefault(n => n.IdTaiKhoan == idTaiKhoan);
+            if (nguoiDung == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng." });
+            }
+
+            var cartItem = _context.GIOHANG.FirstOrDefault(g => g.IdNguoiDung == nguoiDung.IdNguoiDung && g.IdSanPham == request.ProductId);
+            if (cartItem == null)
+            {
+                return Json(new { success = false, message = "Sản phẩm không tồn tại trong giỏ hàng." });
+            }
+
+            _context.GIOHANG.Remove(cartItem);
+            _context.SaveChanges();
+
+            var cartItems = _context.GIOHANG
+                .Include(g => g.SanPham)
+                .Where(g => g.IdNguoiDung == nguoiDung.IdNguoiDung)
+                .ToList();
+
+            var totalQuantity = cartItems.Sum(g => g.SoLuong);
+            var totalCost = cartItems.Sum(g => (g.SanPham.GiaBan ?? 0) * g.SoLuong);
+
+            return Json(new { success = true, totalQuantity = totalQuantity, totalCost = totalCost });
+        }
+
+        public class RemoveFromCartRequest
+        {
+            public string ProductId { get; set; }
+        }
     }
 }

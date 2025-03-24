@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebBookStoreManage.Data;
 
 namespace WebBookStoreManage.Migrations
 {
     [DbContext(typeof(WebBookStoreManageContext))]
-    partial class WebBookStoreManageContextModelSnapshot : ModelSnapshot
+    [Migration("20250324091945_addSDTtoNguoiDung")]
+    partial class addSDTtoNguoiDung
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebBookStoreManage.Data;
 using WebBookStoreManage.Models;
@@ -13,17 +15,19 @@ namespace WebBookStoreManage.Controllers
     public class DIACHIGIAOHANGsController : Controller
     {
         private readonly WebBookStoreManageContext _context;
+        private readonly HttpClient _httpClient;
 
         public DIACHIGIAOHANGsController(WebBookStoreManageContext context)
         {
             _context = context;
+            _httpClient = new HttpClient();
         }
 
-        // GET: DIACHIGIAOHANGs
+        // GET: DIACHIGIAOHANGs/Index
         public async Task<IActionResult> Index()
         {
-            var webBookStoreManageContext = _context.DIACHIGIAOHANG.Include(d => d.NguoiDung);
-            return View(await webBookStoreManageContext.ToListAsync());
+            var addresses = _context.DIACHIGIAOHANG.Include(d => d.NguoiDung);
+            return View(await addresses.ToListAsync());
         }
 
         // GET: DIACHIGIAOHANGs/Details/5
@@ -34,111 +38,128 @@ namespace WebBookStoreManage.Controllers
                 return NotFound();
             }
 
-            var dIACHIGIAOHANG = await _context.DIACHIGIAOHANG
+            var address = await _context.DIACHIGIAOHANG
                 .Include(d => d.NguoiDung)
                 .FirstOrDefaultAsync(m => m.IdDiaChi == id);
-            if (dIACHIGIAOHANG == null)
+            if (address == null)
             {
                 return NotFound();
             }
 
-            return View(dIACHIGIAOHANG);
+            return View(address);
         }
 
         // GET: DIACHIGIAOHANGs/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["IdNguoiDung"] = new SelectList(_context.NGUOIDUNG, "IdNguoiDung", "Email");
-            return View();
+            // Kiểm tra đăng nhập
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            // Lấy IdTàiKhoản từ Claims
+            var idTaiKhoanStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idTaiKhoanStr, out int idTaiKhoan))
+            {
+                // Không lấy được ID => Yêu cầu đăng nhập
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            // Tìm NGUOIDUNG theo idTaiKhoan
+            var nguoiDung = await _context.NGUOIDUNG
+                .FirstOrDefaultAsync(nd => nd.IdTaiKhoan == idTaiKhoan);
+            if (nguoiDung == null)
+            {
+                // Chưa có thông tin người dùng
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Khởi tạo model, gán IdNguoiDung
+            var model = new DIACHIGIAOHANG
+            {
+                IdNguoiDung = nguoiDung.IdNguoiDung
+            };
+
+            // Không xử lý gì thêm. Trả về view để UI tự xây dựng địa chỉ.
+            return View(model);
         }
 
         // POST: DIACHIGIAOHANGs/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("IdDiaChi,HoVaTen,DiaChiGiaoHang,SdtGiaoHang,IdNguoiDung")] DIACHIGIAOHANG dIACHIGIAOHANG)
+        public async Task<IActionResult> Create(DIACHIGIAOHANG model)
         {
-            if (ModelState.IsValid)
+            // Model bao gồm: HoVaTen, SdtGiaoHang, DiaChiGiaoHang, IdNguoiDung
+            // Phía UI đã tự ghép đủ thông tin vào DiaChiGiaoHang, ta chỉ cần lưu.
+
+            if (!ModelState.IsValid)
             {
-                _context.Add(dIACHIGIAOHANG);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return View(model);
             }
-            ViewData["IdNguoiDung"] = new SelectList(_context.NGUOIDUNG, "IdNguoiDung", "Email", dIACHIGIAOHANG.IdNguoiDung);
-            return View(dIACHIGIAOHANG);
+
+            // Lưu DB
+            _context.Add(model);
+            await _context.SaveChangesAsync();
+
+            // Sau khi lưu xong, chuyển về trang Checkout (Order)
+            return RedirectToAction("Checkout", "Order");
         }
 
         // GET: DIACHIGIAOHANGs/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var dIACHIGIAOHANG = await _context.DIACHIGIAOHANG.FindAsync(id);
-            if (dIACHIGIAOHANG == null)
-            {
-                return NotFound();
-            }
-            ViewData["IdNguoiDung"] = new SelectList(_context.NGUOIDUNG, "IdNguoiDung", "Email", dIACHIGIAOHANG.IdNguoiDung);
-            return View(dIACHIGIAOHANG);
+            var address = await _context.DIACHIGIAOHANG.FindAsync(id);
+            if (address == null) return NotFound();
+
+            return View(address);
         }
 
         // POST: DIACHIGIAOHANGs/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("IdDiaChi,HoVaTen,DiaChiGiaoHang,SdtGiaoHang,IdNguoiDung")] DIACHIGIAOHANG dIACHIGIAOHANG)
+        public async Task<IActionResult> Edit(int id, DIACHIGIAOHANG model)
         {
-            if (id != dIACHIGIAOHANG.IdDiaChi)
+            if (id != model.IdDiaChi)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(dIACHIGIAOHANG);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!DIACHIGIAOHANGExists(dIACHIGIAOHANG.IdDiaChi))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                return View(model);
             }
-            ViewData["IdNguoiDung"] = new SelectList(_context.NGUOIDUNG, "IdNguoiDung", "Email", dIACHIGIAOHANG.IdNguoiDung);
-            return View(dIACHIGIAOHANG);
+
+            try
+            {
+                _context.Update(model);
+                await _context.SaveChangesAsync();
+                // Sau khi cập nhật, quay về trang Checkout
+                return RedirectToAction("Checkout", "Order");
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!DIACHIGIAOHANGExists(model.IdDiaChi))
+                {
+                    return NotFound();
+                }
+                throw;
+            }
         }
 
         // GET: DIACHIGIAOHANGs/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var dIACHIGIAOHANG = await _context.DIACHIGIAOHANG
+            var address = await _context.DIACHIGIAOHANG
                 .Include(d => d.NguoiDung)
                 .FirstOrDefaultAsync(m => m.IdDiaChi == id);
-            if (dIACHIGIAOHANG == null)
-            {
-                return NotFound();
-            }
+            if (address == null) return NotFound();
 
-            return View(dIACHIGIAOHANG);
+            return View(address);
         }
 
         // POST: DIACHIGIAOHANGs/Delete/5
@@ -146,8 +167,10 @@ namespace WebBookStoreManage.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var dIACHIGIAOHANG = await _context.DIACHIGIAOHANG.FindAsync(id);
-            _context.DIACHIGIAOHANG.Remove(dIACHIGIAOHANG);
+            var address = await _context.DIACHIGIAOHANG.FindAsync(id);
+            if (address == null) return NotFound();
+
+            _context.DIACHIGIAOHANG.Remove(address);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }

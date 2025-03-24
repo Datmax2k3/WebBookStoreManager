@@ -12,7 +12,8 @@ namespace WebBookStoreManage.Models
         dangXuLy,
         daDuyet,
         dangVanChuyen,
-        hoanThanh
+        hoanThanh,
+        daHuy
     }
 
     public class DONHANG

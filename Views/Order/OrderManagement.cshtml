@@ -1,0 +1,55 @@
+﻿@model IEnumerable<WebBookStoreManage.ViewModels.OrderViewModel>
+
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+}
+
+<body class="h-screen font-sans login bg-cover">
+    <div style="background-color: var(--light-color);">
+        <div class="container container-profile">
+            <!-- Sidebar bên trái -->
+            @Html.Partial("Navbar/_NavProfile")
+
+            <!-- Nội dung chính -->
+            <div class="main-content">
+                <div class="container mt-4">
+                    <h2 class="mb-4">Danh sách đơn hàng của bạn</h2>
+                    @if (Model != null && Model.Any())
+                    {
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Ngày đặt</th>
+                                    <th>Địa chỉ giao hàng</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in Model)
+                                {
+                                <tr>
+                                    <td>@order.PHIEUDAT.NgayTaoPhieu.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@order.PHIEUDAT.DiaChiGiaoHang.DiaChiGiaoHang</td>
+                                    <td>@order.PHIEUDAT.TongTien.ToString("N0")đ</td>
+                                    <td>@(order.DONHANG != null ? order.DONHANG.TrangThaiDonHang.ToString() : "N/A")</td>
+                                    <td>
+                                        <a asp-action="OrderDetails" asp-route-id="@order.PHIEUDAT.IdPhieuDat" class="btn btn-primary btn-sm">Xem chi tiết</a>
+                                    </td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p>Bạn chưa có đơn hàng nào.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+

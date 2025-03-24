@@ -1,0 +1,90 @@
+﻿@model WebBookStoreManage.ViewModels.OrderViewModel
+
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+}
+
+<body class="h-screen font-sans login bg-cover">
+    <div style="background-color: var(--light-color);">
+        <div class="container container-profile">
+            <!-- Sidebar bên trái -->
+            @Html.Partial("Navbar/_NavProfile")
+            @if (TempData["Message"] != null)
+            {
+                <div class="alert alert-success">@TempData["Message"]</div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["Error"]</div>
+            }
+            <!-- Nội dung chính -->
+            <div class="main-content">
+                <div class="container mt-4">
+                    <h2 class="mb-4">Chi tiết đơn hàng</h2>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            Thông tin đơn hàng
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Ngày đặt:</strong> @Model.PHIEUDAT.NgayTaoPhieu.ToString("dd/MM/yyyy HH:mm")</p>
+                            <p><strong>Tổng tiền:</strong> @Model.PHIEUDAT.TongTien.ToString("N0")đ</p>
+                            <p><strong>Trạng thái:</strong> @Model.TrangThai</p>
+                            <p><strong>Ghi chú:</strong> @Model.PHIEUDAT.GhiChu</p>
+                            <!-- Kiểm tra nếu trạng thái là 'dangXuLy' thì hiển thị nút Hủy đơn -->
+                            @if (Model.DONHANG != null && Model.DONHANG.TrangThaiDonHang == WebBookStoreManage.Models.TrangThaiDonHang.dangXuLy)
+                            {
+                                <form asp-action="CancelOrder" asp-route-id="@Model.PHIEUDAT.IdPhieuDat" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');">
+                                    <button type="submit" class="btn btn-danger">Hủy đơn hàng</button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            Thông tin giao hàng
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Họ tên:</strong> @Model.HoTen</p>
+                            <p><strong>Địa chỉ:</strong> @Model.DiaChi</p>
+                            <p><strong>Số điện thoại:</strong> @Model.SoDienThoai</p>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            Chi tiết đơn hàng
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th>Số lượng</th>
+                                        <th>Đơn giá</th>
+                                        <th>Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var ct in Model.ChiTietPhieuDats)
+                                    {
+                                        <tr>
+                                            <td>@ct.SanPham.TenSanPham</td>
+                                            <td>@ct.SoLuong</td>
+                                            <td>@(ct.SanPham.GiaBan?.ToString("N0") ?? "0")đ</td>
+                                            <td>@ct.ThanhTien.ToString("N0")đ</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <a asp-action="OrderManagement" class="btn btn-secondary">Quay lại danh sách đơn hàng</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

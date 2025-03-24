@@ -280,3 +280,10 @@ D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Shared\Navba
 D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Home\ProductDetail.cshtml.g.cs
 D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Cart\Index.cshtml.g.cs
 D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\SANPHAM_TACGIA\AddToExcel.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\Checkout.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\Payment.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Accounts\EditPassword.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Accounts\EditProfile.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Accounts\CreateProfile.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\OrderDetails.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\OrderManagement.cshtml.g.cs
