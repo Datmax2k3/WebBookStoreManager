@@ -1,0 +1,37 @@
+﻿.main-slider .slider-item {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.main-slider.slick-initialized .slider-item {
+    opacity: 1;
+}
+
+.banner-image {
+    max-height: 400px; /* Giới hạn chiều cao để tránh biến dạng layout */
+    object-fit: cover;
+}
+
+.price-banner {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ff5722;
+    margin-bottom: 15px;
+}
+
+/* Thêm hiệu ứng skeleton loading */
+.banner-image.loading {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}

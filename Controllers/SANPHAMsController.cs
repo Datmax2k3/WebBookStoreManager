@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -16,10 +17,12 @@ namespace WebBookStoreManage.Controllers
     public class SANPHAMsController : Controller
     {
         private readonly WebBookStoreManageContext _context;
+        private readonly IWebHostEnvironment _hostingEnvironment;
 
-        public SANPHAMsController(WebBookStoreManageContext context)
+        public SANPHAMsController(WebBookStoreManageContext context, IWebHostEnvironment hostingEnvironment)
         {
             _context = context;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         // GET: SANPHAMs
@@ -79,24 +82,66 @@ namespace WebBookStoreManage.Controllers
         // GET: SANPHAMs/Create
         public IActionResult Create()
         {
+            // Thêm dòng này để truyền danh mục vào ViewBag
+            ViewBag.Categories = _context.DANHMUCCHITIET
+                .Select(d => new {
+                    Id = d.IdDanhMucCT,
+                    TenDanhMuc = d.TenDanhMucCT
+                })
+                .ToList();
+
+            // Giữ nguyên dòng này
             ViewData["IdDanhMucCT"] = new SelectList(_context.DANHMUCCHITIET, "IdDanhMucCT", "TenDanhMucCT");
+
             return View();
         }
 
         // POST: SANPHAMs/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("IdSanPham,IdDanhMucCT,TenSanPham,GiaGoc,GiamGia,NgayXuatBan,SoLuotXem,SoLuongCon,SoLuongDaBan,MoTaChiTiet,TrangThai,hinhAnh")] SANPHAM sANPHAM)
+        public async Task<IActionResult> Create(SANPHAM sANPHAM, IFormFile hinhAnh)
         {
+            // Kiểm tra dữ liệu đầu vào
             if (ModelState.IsValid)
             {
+                // Xử lý upload hình ảnh
+                if (hinhAnh != null && hinhAnh.Length > 0)
+                {
+                    // Tạo thư mục nếu chưa tồn tại
+                    string uploadFolder = Path.Combine(_hostingEnvironment.WebRootPath, "images", "product");
+                    if (!Directory.Exists(uploadFolder))
+                    {
+                        Directory.CreateDirectory(uploadFolder);
+                    }
+
+                    // Tạo tên file duy nhất
+                    string uniqueFileName = Path.GetFileName(hinhAnh.FileName);
+                    string filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                    // Lưu file
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await hinhAnh.CopyToAsync(fileStream);
+                    }
+
+                    // Lưu đường dẫn tương đối vào model
+                    sANPHAM.hinhAnh = $"/images/product/{uniqueFileName}";
+                }
+
+                // Lưu sản phẩm vào database
                 _context.Add(sANPHAM);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdDanhMucCT"] = new SelectList(_context.DANHMUCCHITIET, "IdDanhMucCT", "TenDanhMucCT", sANPHAM.IdDanhMucCT);
+
+            // Nếu ModelState không hợp lệ, truyền lại danh mục
+            ViewBag.Categories = _context.DANHMUCCHITIET
+                .Select(d => new {
+                    Id = d.IdDanhMucCT,
+                    TenDanhMuc = d.TenDanhMucCT
+                })
+                .ToList();
+
             return View(sANPHAM);
         }
 

@@ -116,6 +116,12 @@ namespace WebBookStoreManage.Data
                 .Property(s => s.GiaBan)
                 .HasComputedColumnSql("CASE WHEN GiamGia IS NULL OR GiamGia = 0 THEN GiaGoc ELSE GiaGoc - (GiaGoc * GiamGia / 100) END", stored: true);
 
+            modelBuilder.Entity<NHANVIEN>()
+                .HasMany(nv => nv.DonHangs)
+                .WithOne(dh => dh.NhanVien)
+                .HasForeignKey(dh => dh.IdNhanVien)
+                .OnDelete(DeleteBehavior.NoAction);
+
         }
 
         public DbSet<WebBookStoreManage.Models.DANHMUC> DANHMUC { get; set; }

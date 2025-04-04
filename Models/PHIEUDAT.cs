@@ -21,16 +21,14 @@ namespace WebBookStoreManage.Models
         [Column("ghiChu")]
         public string GhiChu { get; set; }
 
-        [Required]
         [Column("idDiaChi")]
-        public int IdDiaChi { get; set; }
+        public int? IdDiaChi { get; set; }
 
         [ForeignKey("IdDiaChi")]
         public DIACHIGIAOHANG DiaChiGiaoHang { get; set; }
 
-        [Required]
         [Column("idNguoiDung")]
-        public int IdNguoiDung { get; set; }
+        public int? IdNguoiDung { get; set; }
 
         [ForeignKey("IdNguoiDung")]
         public NGUOIDUNG NguoiDung { get; set; }
@@ -38,6 +36,7 @@ namespace WebBookStoreManage.Models
         [Required]
         [Column("tongTien")]
         public decimal TongTien { get; set; }
+
 
         public ICollection<CHITIETPHIEUDAT> ChiTietPhieuDats { get; set; }
         public ICollection<DONHANG> DonHangs { get; set; }

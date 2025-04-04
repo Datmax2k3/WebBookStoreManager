@@ -43,14 +43,14 @@ Version: 1.1
 /* Fonts */
 :root {
   --body-font: "Raleway", sans-serif;
-  --heading-font: "Prata", Georgia, serif;
+  --heading-font: "Times New Roman", Times, serif;
   --secondary-font: "Playfair Display", Georgia, serif;
 }
 
 /* Bootstrap variables */
 :root,
 [data-bs-theme=light] {
-  --heading-font: "Prata", Georgia, serif;
+  --heading-font: "Times New Roman", Times, serif;
   --heading-font-weight: 400;
   --heading-color: var(--bs-dark);
   --heading-line-height: 1.1;

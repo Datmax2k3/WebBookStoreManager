@@ -1,46 +1,77 @@
-﻿
+﻿@* Views/Shared/PartialView/_BestSelling.cshtml *@
+@using WebBookStoreManage.Models
+
+@{
+    var bestSellingProduct = ViewBag.BestSellingProduct as SANPHAM;
+    var tacGia = bestSellingProduct?.SanPhamTacGias?.FirstOrDefault()?.TacGia?.TenTacGia ?? "Unknown Author";
+}
+
 <section id="best-selling" class="leaf-pattern-overlay">
     <div class="corner-pattern-overlay"></div>
     <div class="container">
         <div class="row justify-content-center">
-
             <div class="col-md-8">
-
                 <div class="row">
-
                     <div class="col-md-6">
                         <figure class="products-thumb">
-                            <img src="images/single-image.jpg" alt="book" class="single-image">
+                            @if (bestSellingProduct != null && !string.IsNullOrEmpty(bestSellingProduct.hinhAnh))
+                            {
+                                <img src="@Url.Content("~/images/product/" + bestSellingProduct.hinhAnh)" alt="@bestSellingProduct.TenSanPham" class="single-image">
+                            }
+                            else
+                            {
+                                <img src="images/single-image.jpg" alt="book" class="single-image">
+                            }
                         </figure>
                     </div>
-
                     <div class="col-md-6">
                         <div class="product-entry">
                             <h2 class="section-title divider">Best Selling Book</h2>
-
                             <div class="products-content">
-                                <div class="author-name">By Timbur Hood</div>
-                                <h3 class="item-title">Birds gonna be happy</h3>
-                                <p>
-                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu feugiat amet,
-                                    libero ipsum enim pharetra hac.
-                                </p>
-                                <div class="item-price">$ 45.00</div>
-                                <div class="btn-wrap">
-                                    <a href="#" class="btn-accent-arrow">
-                                        shop it now <i class="icon icon-ns-arrow-right"></i>
-                                    </a>
-                                </div>
+                                @if (bestSellingProduct != null)
+                                {
+                                    <div class="author-name">By @tacGia</div>
+                                    <h3 class="item-title">@bestSellingProduct.TenSanPham</h3>
+                                    <p>
+                                        @if (!string.IsNullOrEmpty(bestSellingProduct.MoTaChiTiet))
+                                        {
+                                            @(bestSellingProduct.MoTaChiTiet.Length > 100
+                                                ? bestSellingProduct.MoTaChiTiet.Substring(0, 100) + "..."
+                                                : bestSellingProduct.MoTaChiTiet)
+                                        }
+                                        else
+                                        {
+                                            <text>Đây là sản phẩm bán chạy nhất của chúng tôi. Nhanh tay mua ngay!</text>
+                                        }
+                                    </p>
+                                    <div class="item-price">@bestSellingProduct.GiaBan?.ToString("N0") đ</div>
+                                    <div class="btn-wrap">
+                                        <a href="@Url.Action("ProductDetail", "Home", new { id = bestSellingProduct.IdSanPham })" class="btn-accent-arrow">
+                                            Xem chi tiết <i class="icon icon-ns-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="author-name">By Timbur Hood</div>
+                                    <h3 class="item-title">Birds gonna be happy</h3>
+                                    <p>
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu feugiat amet,
+                                        libero ipsum enim pharetra hac.
+                                    </p>
+                                    <div class="item-price">$ 45.00</div>
+                                    <div class="btn-wrap">
+                                        <a href="#" class="btn-accent-arrow">
+                                            shop it now <i class="icon icon-ns-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                }
                             </div>
-
                         </div>
                     </div>
-
                 </div>
                 <!-- / row -->
-
             </div>
-
         </div>
     </div>
 </section>

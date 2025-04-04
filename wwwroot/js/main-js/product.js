@@ -3,6 +3,7 @@
     const minusBtn = document.querySelector('.quantity-selector .minus');
     const plusBtn = document.querySelector('.quantity-selector .plus');
     const qtyInput = document.querySelector('.quantity-selector input[type="number"]');
+    const addToCartButton = document.querySelector('.add-to-cart');
 
     // Sự kiện bấm nút "-"
     minusBtn.addEventListener('click', function () {
@@ -23,46 +24,38 @@
             qtyInput.value = currentValue;
         }
     });
-});
 
-document.addEventListener('DOMContentLoaded', function () {
-    const addToCartButtons = document.querySelectorAll('.add-to-cart');
-    addToCartButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const productId = this.getAttribute('data-product-id');
-            const quantity = 1; // Hoặc bạn có thể lấy từ ô input số lượng
+    // Sự kiện bấm nút "Thêm vào giỏ hàng"
+    addToCartButton.addEventListener('click', function () {
+        const productId = this.getAttribute('data-product-id');
+        const quantity = parseInt(qtyInput.value) || 1; // Lấy giá trị từ ô input
 
-            // Gửi yêu cầu AJAX đến CartController/AddToCart
-            fetch('/Cart/AddToCart', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Nếu bạn dùng ASP.NET Core với [ValidateAntiForgeryToken], 
-                    // bạn cần thêm Anti-Forgery token vào header. 
-                    // Lấy token từ <form> hoặc cookie. 
-                    // Tạm bỏ qua nếu bạn tắt ValidateAntiForgeryToken cho action AddToCart.
-                },
-                body: JSON.stringify({ productId: productId, quantity: quantity })
+        // Gửi yêu cầu AJAX đến CartController/AddToCart
+        fetch('/Cart/AddToCart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ productId: productId, quantity: quantity })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Thành công -> chuyển hướng giỏ hàng
+                    window.location.href = '/Cart/Index';
+                }
+                else if (data.redirectTo) {
+                    // Nếu server trả về redirectTo -> chuyển hướng
+                    window.location.href = data.redirectTo;
+                }
+                else {
+                    // Hiển thị message lỗi
+                    alert(data.message || "Đã có lỗi xảy ra!");
+                }
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Thành công -> chuyển hướng giỏ hàng
-                        window.location.href = '/Cart/Index';
-                    }
-                    else if (data.redirectTo) {
-                        // Nếu server trả về redirectTo -> chuyển hướng
-                        window.location.href = data.redirectTo;
-                    }
-                    else {
-                        // Hiển thị message lỗi
-                        alert(data.message || "Đã có lỗi xảy ra!");
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert("Lỗi kết nối!");
-                });
-        });
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi kết nối!");
+            });
     });
 });

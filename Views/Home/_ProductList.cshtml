@@ -11,13 +11,13 @@
                         <a href="@Url.Action("ProductDetail", "Home", new { id = sanPham.IdSanPham })">
                             <img src="@Url.Content("~/images/product/" + sanPham.hinhAnh)" alt="@sanPham.TenSanPham" class="product-item" loading="lazy" />
                         </a>
-                        <button type="button" class="add-to-cart" data-product-tile="add-to-cart">
+                        <button type="button" class="btn btn-primary btn-sm add-to-cart" data-product-id="@sanPham.IdSanPham">
                             Thêm vào giỏ
                         </button>
                     </figure>
                     <figcaption>
                         <h3>@sanPham.TenSanPham</h3>
-                        <span>@sanPham.DanhMucChiTiet.TenDanhMucCT</span>
+                        <span>@sanPham.TenDanhMucCT</span>
                         <div class="item-price">$ @sanPham.GiaGoc</div>
                     </figcaption>
                 </div>

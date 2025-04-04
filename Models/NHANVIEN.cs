@@ -44,6 +44,6 @@ namespace WebBookStoreManage.Models
         public int IdTaiKhoan { get; set; }
         public TAIKHOAN TaiKhoan { get; set; }
 
-        public DONHANG? DonHang { get; set; }
+        public ICollection<DONHANG> DonHangs { get; set; } = new List<DONHANG>();
     }
 }

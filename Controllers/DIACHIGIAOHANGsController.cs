@@ -172,7 +172,7 @@ namespace WebBookStoreManage.Controllers
 
             _context.DIACHIGIAOHANG.Remove(address);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Checkout", "Order");
         }
 
         private bool DIACHIGIAOHANGExists(int id)

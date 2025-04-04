@@ -1,155 +1,298 @@
 ﻿@model IEnumerable<WebBookStoreManage.Models.SANPHAM>
-
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Quản lý sản phẩm";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Index</h1>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="">Quản lý sản phẩm</h1>
+            <p class="text-muted">Quản lý tất cả sản phẩm trong cửa hàng</p>
+        </div>
+        <div>
+            <a href="/SanPhams/Create" class="btn btn-primary">
+                <i class="fas fa-plus mr-2"></i> Thêm sản phẩm mới
+            </a>
+            <a href="/SanPhams/AddToExcel" class="btn btn-primary">
+                <i class="fas fa-plus mr-2"></i> Thêm bằng file excel
+            </a>
+        </div>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-    <a asp-action="AddToExcel">Thêm nhiều sản phẩm bằng excel</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.DanhMucChiTiet)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TenSanPham)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.GiaGoc)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.GiamGia)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NgayXuatBan)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SoLuotXem)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SoLuongCon)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SoLuongDaBan)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MoTaChiTiet)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TrangThai)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.hinhAnh)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DanhMucChiTiet.TenDanhMucCT)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.TenSanPham)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.GiaGoc)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.GiamGia)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.NgayXuatBan)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.SoLuotXem)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.SoLuongCon)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.SoLuongDaBan)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.MoTaChiTiet)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.TrangThai)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.hinhAnh)
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.IdSanPham">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.IdSanPham">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.IdSanPham">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    <!-- Bộ lọc sản phẩm -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">Bộ lọc sản phẩm</h5>
+        </div>
+        <div class="card-body">
+            <form id="productFilterForm" method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="searchKeyword" class="form-label">Từ khóa</label>
+                    <input type="text" class="form-control" id="searchKeyword" name="searchKeyword" placeholder="Tên hoặc mã sản phẩm">
+                </div>
+                <div class="col-md-3">
+                    <label for="categoryId" class="form-label">Danh mục</label>
+                    <select class="form-select" id="categoryId" name="categoryId">
+                        <option value="">Tất cả danh mục</option>
+                        <!-- Danh sách danh mục sẽ được bind từ Controller -->
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="status" class="form-label">Trạng thái</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">Tất cả</option>
+                        <option value="conHang">Còn hàng</option>
+                        <option value="hetHang">Hết hàng</option>
+                        <option value="ngungKinhDoanh">Ngừng kinh doanh</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="sortBy" class="form-label">Sắp xếp theo</label>
+                    <select class="form-select" id="sortBy" name="sortBy">
+                        <option value="newest">Mới nhất</option>
+                        <option value="priceAsc">Giá tăng dần</option>
+                        <option value="priceDesc">Giá giảm dần</option>
+                        <option value="nameAsc">Tên A-Z</option>
+                        <option value="nameDesc">Tên Z-A</option>
+                        <option value="bestSeller">Bán chạy nhất</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search mr-2"></i> Lọc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-<!-- Phần phân trang -->
-<div class="pagination">
-    <!-- Nút "First" (<<) -->
-    @if (ViewBag.CurrentPage > 1)
-    {
-        <a href="@Url.Action("Index", new { page = 1, pageSize = ViewBag.PageSize })"><i class=" fas fa-solid fa-backward"></i></a>
-    }
+    <!-- Danh sách sản phẩm -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 font-weight-bold">Danh sách sản phẩm</h5>
+            <div class="d-flex align-items-center">
+                <span class="mr-3">Hiển thị: </span>
+                <select class="form-select form-select-sm" id="pageSize" style="width: 80px">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="productTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="px-4 py-3" style="width: 70px">Mã SP</th>
+                            <th class="px-4 py-3" style="width: 80px">Hình ảnh</th>
+                            <th class="px-4 py-3">Tên sản phẩm</th>
+                            <th class="px-4 py-3">Danh mục</th>
+                            <th class="px-4 py-3 text-end">Giá bán</th>
+                            <th class="px-4 py-3 text-center">Tồn kho</th>
+                            <th class="px-4 py-3 text-center">Đã bán</th>
+                            <th class="px-4 py-3 text-center">Trạng thái</th>
+                            <th class="px-4 py-3 text-center" style="width: 150px">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="px-4 py-3">@item.IdSanPham</td>
+                                    <td class="px-4 py-3">
+                                        <img src="~/images/product/@(string.IsNullOrEmpty(item.hinhAnh) ? "/images/no-image.png" : item.hinhAnh)"
+                                             alt="@item.TenSanPham"
+                                             class="img-thumbnail"
+                                             style="width: 60px; height: 60px; object-fit: cover;">
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="fw-bold">@item.TenSanPham</div>
+                                        <small class="text-muted">Lượt xem: @item.SoLuotXem</small>
+                                    </td>
+                                    <td class="px-4 py-3">@item.DanhMucChiTiet.TenDanhMucCT</td>
+                                    <td class="px-4 py-3 text-end">
+                                        @if (item.GiamGia > 0)
+                                        {
+                                            <div class="fw-bold text-danger">@item.GiaBan?.ToString("N0")đ</div>
+                                            <del class="text-muted">@item.GiaGoc.ToString("N0")đ</del>
+                                        }
+                                        else
+                                        {
+                                            <div class="fw-bold">@item.GiaGoc.ToString("N0")đ</div>
+                                        }
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        @item.SoLuongCon
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        @item.SoLuongDaBan
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        @{
+                                            string badgeClass = "badge bg-success";
+                                            string statusText = "Còn hàng";
 
-    <!-- Nút "Previous" (<) -->
-    @if (ViewBag.CurrentPage > 1)
-    {
-        <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1, pageSize = ViewBag.PageSize })"><i class=" fas fa-step-backward"></i></a>
-    }
+                                            if (item.TrangThai == "hetHang")
+                                            {
+                                                badgeClass = "badge bg-danger";
+                                                statusText = "Hết hàng";
+                                            }
+                                            else if (item.TrangThai == "ngungKinhDoanh")
+                                            {
+                                                badgeClass = "badge bg-secondary";
+                                                statusText = "Ngừng kinh doanh";
+                                            }
+                                        }
+                                        <span class="@badgeClass">@statusText</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <div class="btn-group">
+                                            <a href="/SanPham/Edit/@item.IdSanPham" class="btn btn-sm btn-outline-primary me-1">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="/SanPham/Details/@item.IdSanPham" class="btn btn-sm btn-outline-info me-1">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger delete-product"
+                                                    data-id="@item.IdSanPham"
+                                                    data-name="@item.TenSanPham">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center py-4">Không có sản phẩm nào</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
 
-    <!-- Hiển thị các trang -->
-    @{
-        int startPage = Math.Max(1, ViewBag.CurrentPage - 2);
-        int endPage = Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2);
-
-        // Nếu startPage lớn hơn 1, hiển thị "..."
-        if (startPage > 1)
-        {
-            <span>...</span>
-        }
-
-        for (int i = startPage; i <= endPage; i++)
-        {
-            if (i == ViewBag.CurrentPage)
+            @if (ViewBag.TotalPages > 1)
             {
-                <span>@i</span>
+                <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                    <div>
+                        Hiển thị trang @ViewBag.CurrentPage / @ViewBag.TotalPages
+                        (Tổng @ViewBag.TotalItems sản phẩm)
+                    </div>
+                    <div class="pagination d-flex align-items-center">
+                        @{
+                            int currentPage = ViewBag.CurrentPage;
+                            int totalPages = ViewBag.TotalPages;
+                            int displayPages = 5; // Số trang hiển thị
+                            int halfDisplay = displayPages / 2;
+                            int startPage = Math.Max(1, currentPage - halfDisplay);
+                            int endPage = Math.Min(totalPages, startPage + displayPages - 1);
+
+                            // Điều chỉnh lại startPage nếu endPage chưa đủ
+                            if (endPage - startPage + 1 < displayPages)
+                            {
+                                startPage = Math.Max(1, endPage - displayPages + 1);
+                            }
+                        }
+
+                        @* Nút Đầu và Trước *@
+                        @if (currentPage > 1)
+                        {
+                            <a href="@Url.Action("Index", new { page = 1, pageSize = ViewBag.PageSize })"
+                               class="btn btn-sm btn-outline-primary me-2">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                            <a href="@Url.Action("Index", new { page = currentPage - 1, pageSize = ViewBag.PageSize })"
+                               class="btn btn-sm btn-outline-primary me-2">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        }
+
+                        @* Các trang *@
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            if (i == currentPage)
+                            {
+                                <span class="btn btn-primary btn-sm mx-1">@i</span>
+                            }
+                            else
+                            {
+                                <a href="@Url.Action("Index", new { page = i, pageSize = ViewBag.PageSize })"
+                                   class="btn btn-outline-primary btn-sm mx-1">@i</a>
+                            }
+                        }
+
+                        @* Nút Tiếp và Cuối *@
+                        @if (currentPage < totalPages)
+                        {
+                            <a href="@Url.Action("Index", new { page = currentPage + 1, pageSize = ViewBag.PageSize })"
+                               class="btn btn-sm btn-outline-primary ms-2">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                            <a href="@Url.Action("Index", new { page = totalPages, pageSize = ViewBag.PageSize })"
+                               class="btn btn-sm btn-outline-primary ms-2">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
             }
-            else
-            {
-                <a href="@Url.Action("Index", new { page = i, pageSize = ViewBag.PageSize })">@i</a>
-            }
-        }
-
-        // Nếu endPage nhỏ hơn TotalPages, hiển thị "..."
-        if (endPage < ViewBag.TotalPages)
-        {
-            <span>...</span>
-        }
-    }
-
-    <!-- Nút "Next" (>) -->
-    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-    {
-        <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1, pageSize = ViewBag.PageSize })"><i class="fas fa-step-forward"></i></a>
-    }
-
-    <!-- Nút "Last" (>>) -->
-    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-    {
-        <a href="@Url.Action("Index", new { page = ViewBag.TotalPages, pageSize = ViewBag.PageSize })"><i class=" fas fa-solid fa-forward"></i></a>
-    }
+        </div>
+    </div>
 </div>
+
+<!-- Modal xác nhận xóa sản phẩm -->
+<div class="modal fade" id="deleteProductModal" tabindex="-1" aria-labelledby="deleteProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteProductModalLabel">Xác nhận xóa sản phẩm</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa sản phẩm "<span id="productNameToDelete"></span>"?</p>
+                <p class="text-danger">Lưu ý: Hành động này không thể hoàn tác!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <form id="deleteProductForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Xử lý thay đổi số lượng hiển thị mỗi trang
+            $('#pageSize').change(function() {
+                var url = new URL(window.location.href);
+                url.searchParams.set('pageSize', $(this).val());
+                url.searchParams.set('page', 1);
+                window.location.href = url.toString();
+            });
+
+            // Đặt giá trị đã chọn cho pageSize dropdown
+            $('#pageSize').val('@ViewBag.PageSize');
+
+            // Xử lý modal xóa sản phẩm
+            $('.delete-product').click(function() {
+                var productId = $(this).data('id');
+                var productName = $(this).data('name');
+
+                $('#productNameToDelete').text(productName);
+                $('#deleteProductForm').attr('action', '/SanPham/Delete/' + productId);
+                $('#deleteProductModal').modal('show');
+            });
+        });
+    </script>
+}

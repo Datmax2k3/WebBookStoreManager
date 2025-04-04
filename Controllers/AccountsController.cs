@@ -49,11 +49,16 @@ namespace WebBookStoreManage.Controllers
                 return View(model);
             }
 
+            // Kiểm tra xem tài khoản có phải của nhân viên không
+            bool isEmployee = account.NhanVien != null;
+
             // Tạo danh sách claims
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, account.TenDangNhap),
-                new Claim(ClaimTypes.NameIdentifier, account.IdTaiKhoan.ToString()) // Sử dụng ClaimTypes.NameIdentifier
+                new Claim(ClaimTypes.NameIdentifier, account.IdTaiKhoan.ToString()),
+                // Thêm claim để xác định nhân viên
+                new Claim("IsEmployee", isEmployee.ToString())
             };
 
             // Tạo claims identity

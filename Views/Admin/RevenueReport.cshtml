@@ -1,0 +1,294 @@
+﻿@model WebBookStoreManage.ViewModels.RevenueReportViewModel
+@{
+    ViewData["Title"] = "Báo cáo doanh thu";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var reportTypes = new Dictionary<string, string>
+{
+        { "daily", "Theo ngày" },
+        { "monthly", "Theo tháng" },
+        { "yearly", "Theo năm" }
+    };
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="">Báo cáo doanh thu</h1>
+            <p class="text-muted">Quản lý và theo dõi doanh thu của cửa hàng</p>
+        </div>
+        <div>
+            @*<button type="button" class="btn btn-outline-secondary me-2" onclick="printReport()">
+                <i class="bi bi-printer"></i> In báo cáo
+            </button>
+            <button type="button" class="btn btn-outline-primary" id="exportExcel">
+                <i class="bi bi-file-excel"></i> Xuất Excel
+            </button>*@
+        </div>
+    </div>
+
+    <!-- Bộ lọc báo cáo -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">Bộ lọc báo cáo</h5>
+        </div>
+        <div class="card-body">
+            <form id="reportFilterForm" asp-action="RevenueReport" method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label asp-for="FromDate" class="form-label">Từ ngày</label>
+                    <input type="date" class="form-control" asp-for="FromDate" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="ToDate" class="form-label">Đến ngày</label>
+                    <input type="date" class="form-control" asp-for="ToDate" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="ReportType" class="form-label">Loại báo cáo</label>
+                    <select class="form-select" asp-for="ReportType">
+                        @foreach (var type in reportTypes)
+                        {
+                            <option value="@type.Key">@type.Value</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Xem báo cáo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tổng quan doanh thu -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="card shadow-sm h-100 border-left-primary">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Tổng doanh thu
+                            </div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800" style="color:blue;">@Model.TotalRevenue.ToString("N0")đ</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-currency-dollar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="card shadow-sm h-100 border-left-success">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Tổng số đơn hàng
+                            </div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800" style="color:green;">@Model.TotalOrders</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-receipt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="card shadow-sm h-100 border-left-info">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Giá trị trung bình/đơn
+                            </div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800" style="color:lightskyblue;">@Model.AverageOrderValue.ToString("N0")đ</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-graph-up fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-left-warning">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Tổng số sản phẩm
+                            </div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800" style="color:orange;">@Model.TotalProducts</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-box fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu đồ doanh thu và Sản phẩm bán chạy -->
+    <div class="row mb-4">
+        <div class="">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold">Top 5 sản phẩm bán chạy</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table mb-0 table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-end">SL bán</th>
+                                    <th class="text-end">Doanh thu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.TopProducts.Any())
+                                {
+                                    foreach (var product in Model.TopProducts)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div>@product.TenSanPham</div>
+                                                <small class="text-muted">Mã: @product.IdSanPham</small>
+                                            </td>
+                                            <td class="text-end">@product.SoLuong</td>
+                                            <td class="text-end">@product.DoanhThu.ToString("N0")đ</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-center py-4">Không có dữ liệu</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chi tiết doanh thu -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 font-weight-bold">Chi tiết doanh thu</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="detailTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>@Model.PeriodColumnName</th>
+                            <th class="text-end">Số đơn hàng</th>
+                            <th class="text-end">Số lượng sản phẩm</th>
+                            <th class="text-end">Doanh thu</th>
+                            <th class="text-end percentage-column d-none">% thay đổi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.RevenueByPeriod.Any())
+                        {
+                            decimal? prevRevenue = null;
+                            foreach (var period in Model.RevenueByPeriod)
+                            {
+                                decimal percentChange = 0;
+                                if (prevRevenue.HasValue && prevRevenue.Value > 0)
+                                {
+                                    percentChange = ((period.Revenue - prevRevenue.Value) / prevRevenue.Value) * 100;
+                                }
+                                prevRevenue = period.Revenue;
+
+                                <tr>
+                                    <td>@period.PeriodName</td>
+                                    <td class="text-end">@period.OrderCount</td>
+                                    <td class="text-end">@period.ProductCount</td>
+                                    <td class="text-end">@period.Revenue.ToString("N0")đ</td>
+                                    <td class="text-end percentage-column d-none">
+                                        @if (percentChange > 0)
+                                        {
+                                            <span class="text-success">
+                                                <i class="bi bi-arrow-up"></i> @percentChange.ToString("0.0")%
+                                            </span>
+                                        }
+                                        else if (percentChange < 0)
+                                        {
+                                            <span class="text-danger">
+                                                <i class="bi bi-arrow-down"></i> @Math.Abs(percentChange).ToString("0.0")%
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span>0%</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-4">Không có dữ liệu trong khoảng thời gian đã chọn</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr class="fw-bold">
+                            <td>Tổng cộng</td>
+                            <td class="text-end">@Model.TotalOrders</td>
+                            <td class="text-end">@Model.TotalProducts</td>
+                            <td class="text-end">@Model.TotalRevenue.ToString("N0")đ</td>
+                            <td class="percentage-column d-none"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+
+        // Hàm in báo cáo
+        function printReport() {
+            window.print();
+        }
+    </script>
+}
+
+<style>
+    /* Các class biên trái cho card */
+    .border-left-primary {
+        border-left: 4px solid #4e73df;
+    }
+
+    .border-left-success {
+        border-left: 4px solid #1cc88a;
+    }
+
+    .border-left-info {
+        border-left: 4px solid #36b9cc;
+    }
+
+    .border-left-warning {
+        border-left: 4px solid #f6c23e;
+    }
+
+    /* Style cho vùng biểu đồ */
+    .chart-container {
+        position: relative;
+        height: 20rem;
+        width: 100%;
+    }
+
+</style>

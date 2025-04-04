@@ -18,9 +18,8 @@ namespace WebBookStoreManage.Models
         [Column("soLuong")]
         public int SoLuong { get; set; }
 
-        [Required]
         [Column("idPhieuDat")]
-        public int IdPhieuDat { get; set; }
+        public int? IdPhieuDat { get; set; }
 
         [ForeignKey("IdPhieuDat")]
         public PHIEUDAT PhieuDat { get; set; }

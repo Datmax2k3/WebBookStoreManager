@@ -1,0 +1,154 @@
+﻿@model WebBookStoreManage.ViewModels.DirectOrderViewModel
+
+@{
+    ViewData["Title"] = "Tạo đơn hàng trực tiếp";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <h1>Tạo đơn hàng trực tiếp</h1>
+    <p>Nhập thông tin đơn hàng để xử lý bán hàng trực tiếp tại quầy.</p>
+
+    <form asp-action="CreateDirectOrder" method="post">
+        <div class="form-group mb-3">
+            <label asp-for="OrderDate" class="form-label">Ngày đặt</label>
+            <input asp-for="OrderDate" class="form-control" readonly value="@DateTime.Now.ToString("yyyy-MM-dd HH:mm")" />
+            <span asp-validation-for="OrderDate" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Note" class="form-label">Ghi chú</label>
+            <textarea asp-for="Note" class="form-control"></textarea>
+            <span asp-validation-for="Note" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-3">
+            <label asp-for="StaffId" class="form-label">Nhân viên</label>
+            <select asp-for="StaffId" class="form-select" asp-items="@(ViewBag.StaffList ?? new SelectList(new List<SelectListItem>()))">
+                <option value="">--Chọn nhân viên--</option>
+            </select>
+            <span asp-validation-for="StaffId" class="text-danger"></span>
+        </div>
+
+        <h3>Chi tiết đơn hàng</h3>
+        <div id="orderItemsContainer">
+            <div class="order-item mb-3 row">
+                <div class="col-md-6">
+                    <label>Sản phẩm</label>
+                    <select name="OrderItems[0].ProductId" class="form-select product-select select2" onchange="updatePrice(this, 0)">
+                        <option value="">--Chọn sản phẩm--</option>
+                        @foreach (var product in (ViewBag.Products as List<WebBookStoreManage.Models.SANPHAM>) ?? new List<WebBookStoreManage.Models.SANPHAM>())
+                        {
+                            <option value="@product.IdSanPham" data-price="@(product.GiaBan.HasValue ? product.GiaBan.Value : 0)">
+                                @product.TenSanPham (@(product.GiaBan.HasValue ? product.GiaBan.Value.ToString("N0") : "0"))đ, tồn: @product.SoLuongCon
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>Số lượng</label>
+                    <input type="number" name="OrderItems[0].Quantity" class="form-control quantity-input" value="1" min="1" onchange="updatePrice(document.querySelector('[name=\'OrderItems[0].ProductId\']'), 0)" />
+                </div>
+                <div class="col-md-3">
+                    <label>Thành tiền</label>
+                    <input type="text" class="form-control amount-display" readonly id="amount-0" value="0 đ" />
+                    <input type="hidden" name="OrderItems[0].Amount" id="amount-hidden-0" value="0" />
+                </div>
+                <div class="col-md-1">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn btn-danger form-control" onclick="removeOrderItem(this)" style="margin-top: 6px;">Xóa</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3 mt-4">
+            <div class="col-md-6">
+                <button type="button" class="btn btn-secondary" onclick="addOrderItem()">Thêm sản phẩm</button>
+            </div>
+            <div class="col-md-6 text-end">
+                <h4>Tổng tiền: <span id="totalAmount">0 đ</span></h4>
+                <input type="hidden" name="TotalAmount" id="totalAmountHidden" value="0" />
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Tạo đơn hàng</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        var itemIndex = 1;
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
+        }
+
+        function updatePrice(selectElement, index) {
+            var selectedOption = selectElement.options[selectElement.selectedIndex];
+            var price = selectedOption ? parseFloat(selectedOption.dataset.price || 0) : 0;
+            var quantity = parseInt(document.querySelector(`[name='OrderItems[${index}].Quantity']`).value || 1);
+            var amount = price * quantity;
+
+            document.getElementById(`amount-${index}`).value = formatCurrency(amount);
+            document.getElementById(`amount-hidden-${index}`).value = amount;
+
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            var total = 0;
+            var hiddenAmounts = document.querySelectorAll('[id^="amount-hidden-"]');
+            hiddenAmounts.forEach(function(el) {
+                total += parseFloat(el.value || 0);
+            });
+
+            document.getElementById('totalAmount').textContent = formatCurrency(total);
+            document.getElementById('totalAmountHidden').value = total;
+        }
+
+        function addOrderItem() {
+            var container = document.getElementById("orderItemsContainer");
+            var newItem = document.createElement("div");
+            newItem.className = "order-item mb-3 row";
+            newItem.innerHTML = `
+                <div class="col-md-6">
+                    <label>Sản phẩm</label>
+                    <select name="OrderItems[${itemIndex}].ProductId" class="form-select product-select" onchange="updatePrice(this, ${itemIndex})">
+                        <option value="">--Chọn sản phẩm--</option>
+                        @foreach (var product in (ViewBag.Products as List<WebBookStoreManage.Models.SANPHAM>) ?? new List<WebBookStoreManage.Models.SANPHAM>())
+                        {
+                            <option value="@product.IdSanPham" data-price="@(product.GiaBan.HasValue ? product.GiaBan.Value : 0)">
+                                @product.TenSanPham (@(product.GiaBan.HasValue ? product.GiaBan.Value.ToString("N0") : "0"))đ, tồn: @product.SoLuongCon
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>Số lượng</label>
+                    <input type="number" name="OrderItems[${itemIndex}].Quantity" class="form-control quantity-input" value="1" min="1" onchange="updatePrice(document.querySelector('[name=\'OrderItems[${itemIndex}].ProductId\']'), ${itemIndex})" />
+                </div>
+                <div class="col-md-3">
+                    <label>Thành tiền</label>
+                    <input type="text" class="form-control amount-display" readonly id="amount-${itemIndex}" value="0 đ" />
+                    <input type="hidden" name="OrderItems[${itemIndex}].Amount" id="amount-hidden-${itemIndex}" value="0" />
+                </div>
+                <div class="col-md-1">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn btn-danger form-control" onclick="removeOrderItem(this)" style="margin-top: 6px;">Xóa</button>
+                </div>
+            `;
+            container.appendChild(newItem);
+            itemIndex++;
+        }
+
+        function removeOrderItem(button) {
+            if (document.querySelectorAll('.order-item').length > 1) {
+                button.closest('.order-item').remove();
+                calculateTotal();
+            } else {
+                alert('Đơn hàng phải có ít nhất một sản phẩm');
+            }
+        }
+    </script>
+}

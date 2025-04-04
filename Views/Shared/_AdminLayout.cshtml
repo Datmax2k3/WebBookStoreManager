@@ -49,26 +49,18 @@
                 <div class="flex justify-between">
                     <div class="p-1 mx-3 inline-flex items-center">
                         <i class="fas fa-bars pr-2 text-white" onclick="sidebarToggle()"></i>
-                        <h1 class="text-white p-2">Logo</h1>
+                        <div class="main-logo">
+                            <a href="/Home/"><img src="/images/logo-banner/YA-Bookstore-logo.webp" style="height:42px;" alt="logo"></a>
+                        </div>
                     </div>
                     <div class="p-1 flex flex-row items-center">
-                        <a href="https://github.com/tailwindadmin/admin" class="text-white p-2 mr-2 no-underline hidden md:block lg:block">Github</a>
-
-
-                        <img onclick="profileToggle()" class="inline-block h-8 w-8 rounded-full" src="https://avatars0.githubusercontent.com/u/4323180?s=460&v=4" alt="">
-                        <a href="#" onclick="profileToggle()" class="text-white p-2 no-underline hidden md:block lg:block">Adam Wathan</a>
-                        <div id="ProfileDropDown" class="rounded hidden shadow-md bg-white absolute pin-t mt-12 mr-1 pin-r">
-                            <ul class="list-reset">
-                                <li><a href="#" class="no-underline px-4 py-2 block text-black hover:bg-grey-light">My account</a></li>
-                                <li><a href="#" class="no-underline px-4 py-2 block text-black hover:bg-grey-light">Notifications</a></li>
-                                <li><hr class="border-t mx-2 border-grey-ligght"></li>
-                                <li><a href="#" class="no-underline px-4 py-2 block text-black hover:bg-grey-light">Logout</a></li>
-                            </ul>
-                        </div>
+                        <a href="#" onclick="profileToggle()" class="text-white p-2 no-underline hidden md:block lg:block">Admin</a>
                     </div>
                 </div>
             </header>
             <!--/Header-->
+
+            @RenderSection("Scripts", required: false)
 
             <div class="flex flex-1">
                 <!--Sidebar-->
@@ -80,6 +72,14 @@
                                class="font-sans font-hairline hover:font-normal text-base text-nav-item no-underline">
                                 <i class="fas fa-home float-left mx-2"></i>
                                 Trang chủ
+                                <span><i class="fas fa-angle-right float-right"></i></span>
+                            </a>
+                        </li>
+                        <li class=" w-full h-full py-3 px-2 border-b border-light-border bg-white">
+                            <a href="/Admin/RevenueReport"
+                               class="font-sans font-hairline hover:font-normal text-base text-nav-item no-underline">
+                                <i class="fas fa-home float-left mx-2"></i>
+                                Thống kê doanh thu
                                 <span><i class="fas fa-angle-right float-right"></i></span>
                             </a>
                         </li>
@@ -131,10 +131,10 @@
                             </a>
                         </li>
                         <li class="w-full h-full py-3 px-2 border-b border-light-border">
-                            <a href="buttons.html"
+                            <a href="/sanphams/"
                                class="font-sans font-hairline hover:font-normal text-base text-nav-item no-underline">
                                 <i class="fas fa-grip-horizontal float-left mx-2"></i>
-                                Buttons
+                                Quản lý sản phẩm
                                 <span><i class="fa fa-angle-right float-right"></i></span>
                             </a>
                         </li>
@@ -179,8 +179,7 @@
     <script src="~/js/admin-js/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script src="~/js/admin-js/sub.js"></script>
-    <script>
-    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 </body>
 

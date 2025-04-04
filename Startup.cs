@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using WebBookStoreManage.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using WebBookStoreManage.Controllers;
 
 namespace WebBookStoreManage
 {
@@ -35,11 +36,23 @@ namespace WebBookStoreManage
                 options.LogoutPath = "/Accounts/Logout";
             });
 
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30);
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
+
             services.AddControllersWithViews();
 
             services.AddDbContext<WebBookStoreManageContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("WebBookStoreManageContext"),
                     sqlOptions => sqlOptions.CommandTimeout(120)));
+
+            services.AddControllersWithViews(options =>
+            {
+                options.Filters.Add<EmployeeCheckFilter>();
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,6 +70,8 @@ namespace WebBookStoreManage
             }
             /*app.UseHttpsRedirection();*/
             app.UseStaticFiles();
+
+            app.UseSession();
 
             app.UseRouting();
 

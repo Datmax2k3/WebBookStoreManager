@@ -27,7 +27,7 @@ namespace WebBookStoreManage.Migrations
                         .HasColumnName("idChiTietPhieuDat")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int>("IdPhieuDat")
+                    b.Property<int?>("IdPhieuDat")
                         .HasColumnType("int")
                         .HasColumnName("idPhieuDat");
 
@@ -197,9 +197,7 @@ namespace WebBookStoreManage.Migrations
 
                     b.HasKey("IdDonHang");
 
-                    b.HasIndex("IdNhanVien")
-                        .IsUnique()
-                        .HasFilter("[idNhanVien] IS NOT NULL");
+                    b.HasIndex("IdNhanVien");
 
                     b.HasIndex("IdPhieuDat");
 
@@ -381,11 +379,11 @@ namespace WebBookStoreManage.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ghiChu");
 
-                    b.Property<int>("IdDiaChi")
+                    b.Property<int?>("IdDiaChi")
                         .HasColumnType("int")
                         .HasColumnName("idDiaChi");
 
-                    b.Property<int>("IdNguoiDung")
+                    b.Property<int?>("IdNguoiDung")
                         .HasColumnType("int")
                         .HasColumnName("idNguoiDung");
 
@@ -565,9 +563,7 @@ namespace WebBookStoreManage.Migrations
                 {
                     b.HasOne("WebBookStoreManage.Models.PHIEUDAT", "PhieuDat")
                         .WithMany("ChiTietPhieuDats")
-                        .HasForeignKey("IdPhieuDat")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("IdPhieuDat");
 
                     b.HasOne("WebBookStoreManage.Models.SANPHAM", "SanPham")
                         .WithMany("ChiTietPhieuDats")
@@ -622,8 +618,9 @@ namespace WebBookStoreManage.Migrations
             modelBuilder.Entity("WebBookStoreManage.Models.DONHANG", b =>
                 {
                     b.HasOne("WebBookStoreManage.Models.NHANVIEN", "NhanVien")
-                        .WithOne("DonHang")
-                        .HasForeignKey("WebBookStoreManage.Models.DONHANG", "IdNhanVien");
+                        .WithMany("DonHangs")
+                        .HasForeignKey("IdNhanVien")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("WebBookStoreManage.Models.PHIEUDAT", "PhieuDat")
                         .WithMany("DonHangs")
@@ -701,14 +698,12 @@ namespace WebBookStoreManage.Migrations
                     b.HasOne("WebBookStoreManage.Models.DIACHIGIAOHANG", "DiaChiGiaoHang")
                         .WithMany()
                         .HasForeignKey("IdDiaChi")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("WebBookStoreManage.Models.NGUOIDUNG", "NguoiDung")
                         .WithMany("PhieuDats")
                         .HasForeignKey("IdNguoiDung")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("DiaChiGiaoHang");
 
@@ -784,7 +779,7 @@ namespace WebBookStoreManage.Migrations
 
             modelBuilder.Entity("WebBookStoreManage.Models.NHANVIEN", b =>
                 {
-                    b.Navigation("DonHang");
+                    b.Navigation("DonHangs");
                 });
 
             modelBuilder.Entity("WebBookStoreManage.Models.PHIEUDAT", b =>

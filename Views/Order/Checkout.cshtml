@@ -4,7 +4,17 @@
     ViewData["Title"] = "Chọn địa chỉ giao hàng";
 }
 
-<div class="container py-5">
+<div class="container py-5" style="padding-top: 0 !important;">
+    <header class="d-flex justify-content-between align-items-center py-3 border-bottom">
+        <div class="logo">
+        </div>
+        <div class="steps">
+            <span class="step text-dark fw-bold">1. Điền thông tin</span>
+            <span class="step text-muted">2. Thanh toán & Hoàn tất</span>
+        </div>
+        <div class="hotline">
+        </div>
+    </header>
     <h2 class="mb-4" style="font-weight: 600;">Giao hàng đến</h2>
 
     @if (Model != null && Model.Any())
@@ -40,14 +50,13 @@
                                     </button>
                                 </form>
 
-                                <!-- Nút Sửa -->
-                                <a asp-action="Edit"
-                                   asp-controller="DiaChiGiaoHangs"
-                                   asp-route-id="@diaChi.IdDiaChi"
-                                   class="btn btn-outline-secondary btn-sm"
-                                   style="min-width: 70px; margin: 0">
-                                    Sửa
-                                </a>
+                                <form method="post" asp-action="Delete" asp-controller="DiaChiGiaoHangs" style="margin:0;">
+                                    <input type="hidden" name="id" value="@diaChi.IdDiaChi" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm" style="min-width: 70px;">
+                                        Xoá
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>

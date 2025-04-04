@@ -287,3 +287,10 @@ D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Accounts\Edi
 D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Accounts\CreateProfile.cshtml.g.cs
 D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\OrderDetails.cshtml.g.cs
 D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\OrderManagement.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\CreateDirectOrder.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\EmployeeOrderManagement.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\PrintOrder.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\EmployeeOrderDetails.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\DirectOrder\Create.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Admin\RevenueReport.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Admin\ProductManager.cshtml.g.cs

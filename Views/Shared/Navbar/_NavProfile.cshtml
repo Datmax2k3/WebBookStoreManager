@@ -1,9 +1,34 @@
 ﻿@* Views/Shared/Navbar/_NavProfile.cshtml *@
+@{
+    bool isEmployee = ViewBag.IsEmployee != null && (bool)ViewBag.IsEmployee;
+    bool isAdmin = ViewBag.IsAdmin != null && (bool)ViewBag.IsAdmin;
+}
 <div class="sidebar">
     <ul>
-        <li><a href="/Accounts/Profile">Thông tin tài khoản</a></li>
-        <li><a href="/Accounts/EditProfile">Thay đổi thông tin</a></li>
-        <li><a href="/Order/OrderManagement">Thông tin đơn hàng</a></li>
-        <li><a href="/Accounts/EditPassword">Đổi mật khẩu</a></li>
+        @if(isAdmin)
+        {
+            <!-- Thêm nút quản lý nhân viên nếu là admin -->
+            <li><a href="/Accounts/EditPassword">Đổi mật khẩu</a></li>
+            <li><a href="/Order/EmployeeOrderManagement">Quản lý đơn hàng</a></li>
+            <li><a href="/SanPhams/Index">Quản lý sản phẩm</a></li>
+            <li><a href="/admin/revenuereport">Báo cáo doanh thu</a></li>
+            <li><a href="/Accounts/EmployeeManagement">Quản lý nhân viên</a></li>
+        }else if (isEmployee)
+        {
+            <!-- Menu cho nhân viên -->
+            <li><a href="/DirectOrder/Creater">Tạo đơn hàng</a></li>
+            <li><a href="/Accounts/EditPassword">Đổi mật khẩu</a></li>
+            <li><a href="/Order/EmployeeOrderManagement">Quản lý đơn hàng</a></li>
+            <li><a href="/Product/ProductManagement">Quản lý sản phẩm</a></li>
+            
+        }
+        else
+        {
+            <!-- Menu cho khách hàng -->
+            <li><a href="/Accounts/Profile">Thông tin tài khoản</a></li>
+            <li><a href="/Accounts/EditProfile">Thay đổi thông tin</a></li>
+            <li><a href="/Order/OrderManagement">Thông tin đơn hàng</a></li>
+            <li><a href="/Accounts/EditPassword">Đổi mật khẩu</a></li>
+        }
     </ul>
 </div>

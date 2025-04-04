@@ -1,59 +1,48 @@
 ﻿@* Views/Shared/PảtialView/_Banner.cshtml *@
-<section id="billboard">
 
+<section id="billboard">
     <div class="container">
         <div class="row">
-            <div class="col-md-12">
 
+            <div class="col-md-12">
                 <button class="prev slick-arrow">
                     <i class="fas fa-arrow-left" style="color: #000000a1;"></i>
                 </button>
-
                 <div class="main-slider pattern-overlay">
+                    <!-- Banner 1 -->
                     <div class="slider-item">
                         <div class="banner-content">
-                            <h2 class="banner-title">Life of the Wild</h2>
-                            <p>
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu feugiat amet, libero
-                                ipsum enim pharetra hac. Urna commodo, lacus ut magna velit eleifend. Amet, quis
-                                urna, a eu.
-                            </p>
+                            <h2 class="banner-title">Sách Mới Ra Mắt</h2>
+                            <p>Khám phá bộ sưu tập sách mới nhất với nhiều thể loại đa dạng cho mọi độc giả</p>
                             <div class="btn-wrap">
-                                <a href="#" class="btn btn-outline-accent btn-accent-arrow">
-                                    Read More<i class="fas fa-arrow-right icon" style="color: #0000005c;"></i>
+                                <a href="@Url.Action("Product", "Home")" class="btn btn-outline-accent btn-accent-arrow">
+                                    Xem ngay<i class="fas fa-arrow-right icon" style="color: #0000005c;"></i>
                                 </a>
                             </div>
                         </div><!--banner-content-->
-                        <img src="images/main-banner1.jpg" alt="banner" class="banner-image">
+                        <img src="~/images/logo-banner/main-banner1.jpg" alt="Sách mới" class="" loading="lazy">
                     </div><!--slider-item-->
-
+                    <!-- Banner 2 -->
                     <div class="slider-item">
                         <div class="banner-content">
-                            <h2 class="banner-title">Birds gonna be Happy</h2>
-                            <p>
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu feugiat amet, libero
-                                ipsum enim pharetra hac. Urna commodo, lacus ut magna velit eleifend. Amet, quis
-                                urna, a eu.
-                            </p>
+                            <h2 class="banner-title">Ưu Đãi Đặc Biệt</h2>
+                            <p>Giảm giá lên đến 30% cho tất cả sách trong bộ sưu tập mùa hè này</p>
                             <div class="btn-wrap">
-                                <a href="#" class="btn btn-outline-accent btn-accent-arrow">
-                                    Read More<i class="fas fa-arrow-right icon" style="color: #0000005c;"></i>
+                                <a href="@Url.Action("Product", "Home", new { sort = "price-desc" })" class="btn btn-outline-accent btn-accent-arrow">
+                                    Khám phá<i class="fas fa-arrow-right icon" style="color: #0000005c;"></i>
                                 </a>
                             </div>
                         </div><!--banner-content-->
-                        <img src="images/main-banner2.jpg" alt="banner" class="banner-image">
+                        <img src="~/images/logo-banner/main-banner2.jpg" alt="Ưu đãi" class="" loading="lazy">
                     </div><!--slider-item-->
-
                 </div><!--slider-->
-
                 <button class="next slick-arrow">
                     <i class="fas fa-arrow-right" style="color: #000000a1;"></i>
                 </button>
-
             </div>
+
         </div>
     </div>
-
 </section>
 
 <!---->

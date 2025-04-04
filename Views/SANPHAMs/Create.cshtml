@@ -1,85 +1,178 @@
 ﻿@model WebBookStoreManage.Models.SANPHAM
-
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Thêm Sản Phẩm Mới";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Create</h1>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-plus-circle mr-2"></i> Thêm Sản Phẩm Mới
+                    </h3>
+                </div>
 
-<h4>SANPHAM</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="IdSanPham" class="control-label"></label>
-                <input asp-for="IdSanPham" class="form-control" />
-                <span asp-validation-for="IdSanPham" class="text-danger"></span>
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Thông Tin Cơ Bản -->
+                            <div class="col-md-8">
+                                <div class="form-group mb-3">
+                                    <label asp-for="IdSanPham" class="form-label">Mã Sản Phẩm <span class="text-danger">*</span></label>
+                                    <input asp-for="IdSanPham" class="form-control" maxlength="7" required
+                                           placeholder="Nhập mã sản phẩm (VD: SP001)" />
+                                    <span asp-validation-for="IdSanPham" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="TenSanPham" class="form-label">Tên Sản Phẩm <span class="text-danger">*</span></label>
+                                    <input asp-for="TenSanPham" class="form-control" maxlength="500" required
+                                           placeholder="Nhập tên sản phẩm" />
+                                    <span asp-validation-for="TenSanPham" class="text-danger"></span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 form-group mb-3">
+                                        <label asp-for="IdDanhMucCT" class="form-label">Danh Mục <span class="text-danger">*</span></label>
+                                        <select asp-for="IdDanhMucCT" class="form-select" required
+                                                asp-items="@(new SelectList(ViewBag.Categories, "Id", "TenDanhMuc"))">
+                                            <option value="">-- Chọn Danh Mục --</option>
+                                        </select>
+                                        <span asp-validation-for="IdDanhMucCT" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-6 form-group mb-3">
+                                        <label asp-for="TrangThai" class="form-label">Trạng Thái <span class="text-danger">*</span></label>
+                                        <select asp-for="TrangThai" class="form-select" required>
+                                            <option value="conHang">Còn Hàng</option>
+                                            <option value="hetHang">Hết Hàng</option>
+                                            <option value="ngungKinhDoanh">Ngừng Kinh Doanh</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4 form-group mb-3">
+                                        <label asp-for="GiaGoc" class="form-label">Giá Gốc <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <input asp-for="GiaGoc" type="number" class="form-control" min="0" required />
+                                            <span class="input-group-text">VNĐ</span>
+                                        </div>
+                                        <span asp-validation-for="GiaGoc" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-4 form-group mb-3">
+                                        <label asp-for="GiamGia" class="form-label">Giảm Giá</label>
+                                        <div class="input-group">
+                                            <input asp-for="GiamGia" type="number" class="form-control" min="0" />
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 form-group mb-3">
+                                        <label asp-for="SoLuongCon" class="form-label">Số Lượng Tồn</label>
+                                        <input asp-for="SoLuongCon" type="number" class="form-control" min="0" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="MoTaChiTiet" class="form-label">Mô Tả Chi Tiết</label>
+                                    <textarea asp-for="MoTaChiTiet" class="form-control" rows="5"
+                                              placeholder="Nhập mô tả chi tiết sản phẩm"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Hình Ảnh -->
+                            <div class="col-md-4">
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Hình Ảnh Sản Phẩm</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="text-center mb-3">
+                                            <img id="imagePreview" src="/images/no-image.png"
+                                                 class="img-fluid rounded" style="max-height: 250px;" />
+                                        </div>
+                                        <div class="custom-file">
+                                            <input type="file" class="form-control" id="imageUpload"
+                                                   name="hinhAnh" accept="image/*" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Thông Tin Bổ Sung</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group mb-3">
+                                            <label asp-for="NgayXuatBan" class="form-label">Ngày Xuất Bản</label>
+                                            <input asp-for="NgayXuatBan" type="date" class="form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left mr-2"></i> Quay Lại
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-2"></i> Lưu Sản Phẩm
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label asp-for="IdDanhMucCT" class="control-label"></label>
-                <select asp-for="IdDanhMucCT" class ="form-control" asp-items="ViewBag.IdDanhMucCT"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="TenSanPham" class="control-label"></label>
-                <input asp-for="TenSanPham" class="form-control" />
-                <span asp-validation-for="TenSanPham" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="GiaGoc" class="control-label"></label>
-                <input asp-for="GiaGoc" class="form-control" />
-                <span asp-validation-for="GiaGoc" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="GiamGia" class="control-label"></label>
-                <input asp-for="GiamGia" class="form-control" />
-                <span asp-validation-for="GiamGia" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="NgayXuatBan" class="control-label"></label>
-                <input asp-for="NgayXuatBan" class="form-control" />
-                <span asp-validation-for="NgayXuatBan" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="SoLuotXem" class="control-label"></label>
-                <input asp-for="SoLuotXem" class="form-control" />
-                <span asp-validation-for="SoLuotXem" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="SoLuongCon" class="control-label"></label>
-                <input asp-for="SoLuongCon" class="form-control" />
-                <span asp-validation-for="SoLuongCon" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="SoLuongDaBan" class="control-label"></label>
-                <input asp-for="SoLuongDaBan" class="form-control" />
-                <span asp-validation-for="SoLuongDaBan" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MoTaChiTiet" class="control-label"></label>
-                <input asp-for="MoTaChiTiet" class="form-control" />
-                <span asp-validation-for="MoTaChiTiet" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TrangThai" class="control-label"></label>
-                <input asp-for="TrangThai" class="form-control" />
-                <span asp-validation-for="TrangThai" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="hinhAnh" class="control-label"></label>
-                <input asp-for="hinhAnh" class="form-control" />
-                <span asp-validation-for="hinhAnh" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var imageUpload = document.getElementById('imageUpload');
+            var imagePreview = document.getElementById('imagePreview');
 
+            imageUpload.addEventListener('change', function (event) {
+                console.log('Sự kiện change được kích hoạt');
+
+                var file = event.target.files[0];
+                if (file) {
+                    console.log('Có file được chọn');
+
+                    var reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        console.log('Đã đọc file thành công');
+                        imagePreview.src = e.target.result;
+                        console.log('Đường dẫn ảnh:', e.target.result);
+                    }
+
+                    reader.onerror = function (error) {
+                        console.error('Lỗi đọc file:', error);
+                    }
+
+                    reader.readAsDataURL(file);
+                } else {
+                    console.log('Không có file nào được chọn');
+                }
+            });
+        });
+
+        $(document).ready(function () {
+            // Tự động tính giá bán
+            $('#GiaGoc, #GiamGia').on('change', function () {
+                let giaGoc = parseFloat($('#GiaGoc').val()) || 0;
+                let giamGia = parseFloat($('#GiamGia').val()) || 0;
+                let giaBan = giaGoc - (giaGoc * giamGia / 100);
+                $('#GiaBan').val(giaBan.toFixed(0));
+            });
+        });
+    </script>
+}

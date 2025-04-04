@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -27,6 +28,45 @@ namespace WebBookStoreManage.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // Kiểm tra xem người dùng có phải nhân viên không
+            bool isEmployee = false;
+            if (User.Identity.IsAuthenticated)
+            {
+                var account = await _context.TAIKHOAN
+                    .Include(a => a.NhanVien)
+                    .FirstOrDefaultAsync(a => a.TenDangNhap == User.Identity.Name);
+
+                isEmployee = account?.NhanVien != null;
+            }
+            ViewBag.IsEmployee = isEmployee;
+
+            // Lấy 50 sản phẩm đầu tiên cho cả hai mục đích
+            var top50Products = await _context.SANPHAM
+                .Include(p => p.SanPhamTacGias)
+                    .ThenInclude(st => st.TacGia)
+                .Take(50)
+                .ToListAsync();
+
+            // Xử lý ở phía client để lấy sản phẩm xem nhiều nhất và bán chạy nhất
+            var topViewedProducts = top50Products
+                .OrderByDescending(p => p.SoLuotXem)
+                .Take(4)
+                .ToList();
+
+            var popularBooks = top50Products
+                .OrderByDescending(p => p.SoLuongDaBan)
+                .Skip(1) // Bỏ qua sản phẩm bán chạy nhất (đã dùng cho Best Selling)
+                .Take(8)
+                .ToList();
+
+            var bestSellingProduct = top50Products
+                .OrderByDescending(p => p.SoLuongDaBan)
+                .FirstOrDefault();
+
+            ViewBag.TopViewedProducts = topViewedProducts;
+            ViewBag.BestSellingProduct = bestSellingProduct;
+            ViewBag.PopularBooks = popularBooks;
+
             CartViewModel cartModel = new CartViewModel
             {
                 CartItems = new List<GIOHANG>(),
@@ -54,6 +94,24 @@ namespace WebBookStoreManage.Controllers
             return View(cartModel);
         }
 
+        private async Task<int> GetProcessingOrderCount()
+        {
+            return await _context.DONHANG
+                .Where(dh => dh.TrangThaiDonHang == TrangThaiDonHang.dangXuLy)
+                .CountAsync();
+        }
+
+        // Sửa đổi action hoặc filter chạy trước khi render layout
+        public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        {
+            bool isEmployee = ViewBag.IsEmployee != null && (bool)ViewBag.IsEmployee;
+            bool isAdmin = ViewBag.IsAdmin != null && (bool)ViewBag.IsAdmin;
+            if (!isEmployee && !isAdmin)
+            {
+                ViewBag.ProcessingOrderCount = await GetProcessingOrderCount();
+            }
+            await base.OnActionExecutionAsync(context, next);
+        }
 
         public IActionResult Privacy()
         {
@@ -66,14 +124,12 @@ namespace WebBookStoreManage.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        public IActionResult Product(int? categoryId, string danhmuc, string danhmucchitiet, string sort, int? page)
+        public async Task<IActionResult> Product(int? categoryId, string danhmuc, string danhmucchitiet, string sort, int? page)
         {
             int currentPage = page ?? 1;
             int pageSize = 20;
+            var danhMucs = await _context.DANHMUC.Include(dm => dm.DanhMucChiTiets).ToListAsync();
 
-            var danhMucs = _context.DANHMUC.Include(dm => dm.DanhMucChiTiets).ToList();
-
-            // Nếu có giá trị lọc đa lựa chọn từ danhmuc thì ưu tiên sử dụng nó, ngược lại mới dùng categoryId
             if (!string.IsNullOrEmpty(danhmuc))
             {
                 // Không tự động gán categoryId bằng giá trị đầu tiên
@@ -83,68 +139,74 @@ namespace WebBookStoreManage.Controllers
                 categoryId = danhMucs.First().IdDanhMuc;
             }
 
-            // Lưu lại các giá trị lọc trong view model
             var viewModel = new ProductViewModel
             {
                 DanhMucs = danhMucs,
-                // Các thuộc tính khác...
                 SelectedCategoryId = categoryId ?? 0,
                 SelectedDanhMuc = danhmuc,
                 SelectedDanhMucChiTiet = danhmucchitiet
             };
 
-            // Xây dựng truy vấn lọc sản phẩm
-            var productsQuery = _context.SANPHAM.Include(sp => sp.DanhMucChiTiet).AsQueryable();
+            // Bắt đầu với truy vấn SANPHAM
+            var productsQuery = _context.SANPHAM.AsQueryable();
 
+            // Lọc theo danh mục (danhmuc)
             if (!string.IsNullOrEmpty(danhmuc))
             {
                 var selectedDanhMucIds = danhmuc.Split(',').Select(int.Parse).ToList();
-                productsQuery = productsQuery.Where(p => selectedDanhMucIds.Contains(p.DanhMucChiTiet.DanhMuc.IdDanhMuc));
+                productsQuery = productsQuery.Where(sp => selectedDanhMucIds.Contains(sp.DanhMucChiTiet.DanhMuc.IdDanhMuc));
             }
             else if (categoryId.HasValue)
             {
-                productsQuery = productsQuery.Where(p => p.DanhMucChiTiet != null
-                    && p.DanhMucChiTiet.IdDanhMuc == categoryId.Value);
+                productsQuery = productsQuery.Where(sp => sp.DanhMucChiTiet != null && sp.DanhMucChiTiet.IdDanhMuc == categoryId.Value);
             }
 
-            // Nếu có lọc theo danh mục chi tiết
+            // Lọc theo danh mục chi tiết (danhmucchitiet)
             if (!string.IsNullOrEmpty(danhmucchitiet))
             {
                 var selectedDanhMucCTIds = danhmucchitiet.Split(',').Select(int.Parse).ToList();
-                productsQuery = productsQuery.Where(p => selectedDanhMucCTIds.Contains(p.DanhMucChiTiet.IdDanhMucCT));
+                productsQuery = productsQuery.Where(sp => selectedDanhMucCTIds.Contains(sp.DanhMucChiTiet.IdDanhMucCT));
             }
 
-            // Sau khi lọc theo danhmucchitiet
+            // Chiếu sang ProductDto sau khi lọc
+            var projectedQuery = productsQuery.Select(sp => new ProductDto
+            {
+                IdSanPham = sp.IdSanPham,
+                TenSanPham = sp.TenSanPham,
+                GiaGoc = sp.GiaGoc,
+                hinhAnh = sp.hinhAnh,
+                TenDanhMucCT = sp.DanhMucChiTiet.TenDanhMucCT
+            });
+
+            // Sắp xếp
             if (!string.IsNullOrEmpty(sort))
             {
                 switch (sort)
                 {
                     case "az":
-                        productsQuery = productsQuery.OrderBy(p => p.TenSanPham);
+                        projectedQuery = projectedQuery.OrderBy(p => p.TenSanPham);
                         break;
                     case "za":
-                        productsQuery = productsQuery.OrderByDescending(p => p.TenSanPham);
+                        projectedQuery = projectedQuery.OrderByDescending(p => p.TenSanPham);
                         break;
                     case "price-asc":
-                        productsQuery = productsQuery.OrderBy(p => p.GiaBan);
+                        projectedQuery = projectedQuery.OrderBy(p => p.GiaGoc);
                         break;
                     case "price-desc":
-                        productsQuery = productsQuery.OrderByDescending(p => p.GiaBan);
+                        projectedQuery = projectedQuery.OrderByDescending(p => p.GiaGoc);
                         break;
                     default:
-                        productsQuery = productsQuery.OrderBy(p => p.TenSanPham);
+                        projectedQuery = projectedQuery.OrderBy(p => p.TenSanPham);
                         break;
                 }
             }
             else
             {
-                // Nếu không có sort, sắp xếp mặc định
-                productsQuery = productsQuery.OrderBy(p => p.TenSanPham);
+                projectedQuery = projectedQuery.OrderBy(p => p.TenSanPham);
             }
 
-            var sanPhams = productsQuery.ToList();
-            var pagedSanPhams = sanPhams.ToPagedList(currentPage, pageSize);
-
+            // Phân trang
+            var pagedSanPhams = await projectedQuery.ToPagedListAsync(currentPage, pageSize);
             viewModel.SanPhams = pagedSanPhams;
             viewModel.CurrentPage = currentPage;
             viewModel.TotalPages = pagedSanPhams.PageCount;
@@ -153,7 +215,6 @@ namespace WebBookStoreManage.Controllers
             {
                 return PartialView("_ProductList", viewModel);
             }
-
             return View(viewModel);
         }
 
@@ -217,10 +278,18 @@ namespace WebBookStoreManage.Controllers
             int pageSize = 20;
             int totalCount = productsQuery.Count();
             var pagedData = productsQuery
-                .Skip((currentPage - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-            var pagedSanPhams = new StaticPagedList<SANPHAM>(pagedData, currentPage, pageSize, totalCount);
+        .Skip((currentPage - 1) * pageSize)
+        .Take(pageSize)
+        .Select(sp => new ProductDto
+        {
+            IdSanPham = sp.IdSanPham,
+            TenSanPham = sp.TenSanPham,
+            GiaGoc = sp.GiaGoc,
+            hinhAnh = sp.hinhAnh,
+            TenDanhMucCT = sp.DanhMucChiTiet.TenDanhMucCT
+        })
+        .ToList();
+            var pagedSanPhams = new StaticPagedList<ProductDto>(pagedData, currentPage, pageSize, totalCount);
 
             // 7. Tạo view model
             var model = new ProductViewModel
