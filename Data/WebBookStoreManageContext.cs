@@ -147,5 +147,6 @@ namespace WebBookStoreManage.Data
         public DbSet<WebBookStoreManage.Models.DONHANG> DONHANG { get; set; }
 
         public DbSet<WebBookStoreManage.Models.SANPHAM_TACGIA> SANPHAM_TACGIA { get; set; }
+
     }
 }

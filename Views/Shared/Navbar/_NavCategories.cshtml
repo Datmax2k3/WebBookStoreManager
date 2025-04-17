@@ -1,16 +1,5 @@
 ﻿<!--Views/Shared/Navbar/_NavCategories.cshtml-->
-@model List<WebBookStoreManage.Models.DANHMUC>
 
-<ul class="tabs nav nav-tabs" style="margin: 0; padding: 12px; border-bottom: 1px solid #E0E0E0;">
-    @foreach (var danhMuc in Model)
-    {
-        <li class="nav-item tab" data-category-id="@danhMuc.IdDanhMuc" data-tab-target="#@danhMuc.TenDanhMuc.ToLower().Replace(" ", "-")">
-            <a class="nav-link" href="@Url.Action("Product", new { categoryId = danhMuc.IdDanhMuc, page = 1 })">
-                @danhMuc.TenDanhMuc
-            </a>
-        </li>
-    }
-</ul>
 
 <!-- Bắt đầu thanh sắp xếp + tìm kiếm -->
 <div class="row mb-3 align-items-center">
@@ -24,10 +13,10 @@
         </select>
     </div>
     <div class="action_menu col-md-6 text-end">
-        <div class="search-bar d-inline-block">
+        <div class="search-bar" style="padding-top: 16px;">
             <form id="searchForm" class="search-box" style="position: relative;">
                 <input id="searchInput" class="search-field text search-input form-control" placeholder="Nhập tên sách hoặc tác giả..." type="search" />
-                <button type="submit" class="btn btn-primary" style="position: absolute; right: 0; top: 0; bottom:0;">Tìm</button>
+                <button type="submit" class="btn btn-primary" style="position: absolute; right: 0; top: 0; bottom:0; margin:0; height: 39px;">Tìm</button>
             </form>
         </div>
     </div>

@@ -12,6 +12,9 @@ using Microsoft.EntityFrameworkCore;
 using WebBookStoreManage.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using WebBookStoreManage.Controllers;
+using WebBookStoreManage.Configuration;
+using WebBookStoreManage.Services;
+using WebBookStoreManage.Models.Momo;
 
 namespace WebBookStoreManage
 {
@@ -53,6 +56,23 @@ namespace WebBookStoreManage
             {
                 options.Filters.Add<EmployeeCheckFilter>();
             });
+
+            // Configure SmtpSettings
+            services.Configure<SmtpSettings>(Configuration.GetSection("SmtpSettings"));
+            services.AddSingleton<SmtpSettings>(Configuration.GetSection("SmtpSettings").Get<SmtpSettings>());
+
+            // Register EmailService
+            services.AddTransient<EmailService>();
+            services.AddLogging();
+
+            /// Cấu hình MoMo API
+            services.Configure<MomoOptionModel>(Configuration.GetSection("MomoAPI"));
+            services.AddScoped<IMomoService, MomoService>();
+
+            // Đăng ký HttpClient
+            services.AddHttpClient();
+
+            services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

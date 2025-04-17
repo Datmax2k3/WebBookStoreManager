@@ -1,0 +1,123 @@
+﻿@model WebBookStoreManage.Models.DONHANG
+
+@{
+    ViewData["Title"] = "Đặt hàng thành công";
+}
+
+<!-- Header -->
+<header class="d-flex justify-content-between align-items-center py-3 border-bottom">
+    <div class="logo">
+    </div>
+    <div class="steps">
+        <span class="step text-muted">1. Điền thông tin</span>
+        <span class="step text-muted">2. Thanh toán</span>
+        <span class="step text-dark fw-bold">3. Hoàn tất</span>
+    </div>
+    <div class="hotline">
+    </div>
+</header>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="text-success">Đặt hàng thành công!</h2>
+                    <p class="lead mb-4">Cảm ơn bạn đã mua sách tại Thành Tâm</p>
+
+                    <div class="order-details mb-4">
+                        <h4>Thông tin đơn hàng #@Model.IdDonHang</h4>
+                        <div class="row mt-3">
+                            <div class="col-md-6 text-start">
+                                <h5>Thông tin giao hàng</h5>
+                                <p>@Model.PhieuDat.DiaChiGiaoHang.HoVaTen</p>
+                                <p>@Model.PhieuDat.DiaChiGiaoHang.SdtGiaoHang</p>
+                                <p>@Model.PhieuDat.DiaChiGiaoHang.DiaChiGiaoHang</p>
+                            </div>
+                            <div class="col-md-6 text-start">
+                                <h5>Thông tin thanh toán</h5>
+                                <p>
+                                    Phương thức:
+                                    @if (Model.NgayThanhToan != null)
+                                    {
+                                        <span class="badge bg-success">MoMo (Đã thanh toán)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-primary">COD (Thanh toán khi nhận hàng)</span>
+                                    }
+                                </p>
+                                @if (Model.NgayThanhToan != null)
+                                {
+                                    <p>Ngày thanh toán: @Model.NgayThanhToan.Value.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                                }
+                                <p>
+                                    Trạng thái:
+                                    @switch (Model.TrangThaiDonHang)
+                                    {
+                                        case TrangThaiDonHang.dangXuLy:
+                                            <span class="badge bg-warning text-dark">Đang xử lý</span>
+                                            break;
+                                        case TrangThaiDonHang.daDuyet:
+                                            <span class="badge bg-info">Đã duyệt</span>
+                                            break;
+                                        case TrangThaiDonHang.dangVanChuyen:
+                                            <span class="badge bg-primary">Đang vận chuyển</span>
+                                            break;
+                                        case TrangThaiDonHang.hoanThanh:
+                                            <span class="badge bg-success">Hoàn thành</span>
+                                            break;
+                                        case TrangThaiDonHang.daHuy:
+                                            <span class="badge bg-danger">Đã hủy</span>
+                                            break;
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="order-items mb-4">
+                        <h5>Sản phẩm đã đặt</h5>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th>Số lượng</th>
+                                        <th>Đơn giá</th>
+                                        <th>Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.PhieuDat.ChiTietPhieuDats)
+                                    {
+                                        <tr>
+                                            <td>@item.SanPham.TenSanPham</td>
+                                            <td>@item.SoLuong</td>
+                                            <td>@item.SanPham.GiaBan?.ToString("N0")đ</td>
+                                            <td>@item.ThanhTien.ToString("N0")đ</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3" class="text-end fw-bold">Tổng tiền:</td>
+                                        <td class="fw-bold">@Model.PhieuDat.TongTien.ToString("N0")đ</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Tiếp tục mua sắm</a>
+                        <a href="@Url.Action("OrderManagement", "Order")" class="btn btn-outline-secondary">Xem lịch sử đơn hàng</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

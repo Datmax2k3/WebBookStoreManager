@@ -1,0 +1,130 @@
+﻿@model WebBookStoreManage.ViewModels.MomoPaymentViewModel
+
+@{
+    ViewData["Title"] = "Thanh toán MoMo";
+}
+
+<!-- Header -->
+<header class="d-flex justify-content-between align-items-center py-3 border-bottom">
+    <div class="logo">
+    </div>
+    <div class="steps">
+        <span class="step text-muted">1. Điền thông tin</span>
+        <span class="step text-muted">2. Thanh toán</span>
+        <span class="step text-dark fw-bold">3. Hoàn tất thanh toán</span>
+    </div>
+    <div class="hotline">
+    </div>
+</header>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3>Thanh toán qua MoMo</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <img src="/images/momo-logo.png" alt="MoMo Logo" style="width: 100px;" />
+                    </div>
+
+                    <div class="mb-3">
+                        <h5>Số tiền: <span class="text-danger fw-bold">@Model.Amount.ToString("N0")đ</span></h5>
+                        <p>Mã thanh toán: <strong>@Model.PaymentCode</strong></p>
+                    </div>
+
+                    <div class="qr-container mb-4">
+                        <!-- Hiển thị QR mẫu từ thư mục wwwroot/images hoặc placeholder -->
+                        @if (!string.IsNullOrEmpty(Model.QrCodeUrl))
+                        {
+                            <img src="@Model.QrCodeUrl" alt="Mã QR thanh toán MoMo" class="img-thumbnail" style="width: 200px; height: 200px;" />
+                        }
+                        else
+                        {
+                            <!-- Sử dụng placeholder nếu không có QR -->
+                            <div class="border rounded p-3" style="width: 200px; height: 200px; margin: 0 auto;">
+                                <div class="text-center h-100 d-flex flex-column justify-content-center">
+                                    <i class="bi bi-qr-code" style="font-size: 5rem;"></i>
+                                    <p class="mt-2">Mã QR mẫu</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="text-muted">Quét mã QR bằng ứng dụng MoMo để thanh toán</p>
+                        <p class="text-info">Đây là chế độ thanh toán mô phỏng cho mục đích thử nghiệm</p>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button id="btnCancel" class="btn btn-outline-secondary">Hủy thanh toán</button>
+                        <button id="btnCheckPayment" class="btn btn-success">Đã thanh toán</button>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <p class="text-muted small">Mã đơn hàng: #@Model.OrderId</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Để dễ dàng test, bạn có thể thêm một đoạn timer giả lập quét QR
+        let simulationTime = 15; // 15 giây
+        let simulationTimer = setInterval(function() {
+            simulationTime--;
+            if (simulationTime <= 0) {
+                clearInterval(simulationTimer);
+                // Hiển thị thông báo
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'alert alert-info mt-3';
+                infoDiv.innerHTML = 'Bạn có thể bấm "Đã thanh toán" để hoàn tất quá trình thanh toán mô phỏng.';
+                document.querySelector('.qr-container').after(infoDiv);
+            }
+        }, 1000);
+
+        // Xử lý khi người dùng hủy thanh toán
+        document.getElementById('btnCancel').addEventListener('click', function() {
+            if (confirm('Bạn có chắc muốn hủy thanh toán không?')) {
+                window.location.href = '@Url.Action("CancelPayment", "Order", new { orderId = Model.OrderId })';
+            }
+        });
+
+        // Xử lý khi người dùng đã thanh toán
+        document.getElementById('btnCheckPayment').addEventListener('click', function() {
+            // Hiển thị loading
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
+            this.disabled = true;
+
+            // Gửi yêu cầu kiểm tra thanh toán
+            fetch('@Url.Action("VerifyPayment", "Order", new { orderId = Model.OrderId })', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Nếu thanh toán thành công
+                    window.location.href = '@Url.Action("PaymentSuccess", "Order", new { orderId = Model.OrderId })';
+                } else {
+                    // Nếu thanh toán chưa được xác nhận
+                    alert('Có lỗi xảy ra khi xác nhận thanh toán. Vui lòng thử lại.');
+                    this.innerHTML = 'Đã thanh toán';
+                    this.disabled = false;
+                }
+            })
+            .catch(error => {
+                alert('Đã xảy ra lỗi khi kiểm tra thanh toán. Vui lòng thử lại.');
+                console.error('Error:', error);
+                this.innerHTML = 'Đã thanh toán';
+                this.disabled = false;
+            });
+        });
+    </script>
+}

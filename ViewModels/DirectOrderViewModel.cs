@@ -14,12 +14,12 @@ namespace WebBookStoreManage.ViewModels
         public string Note { get; set; }
 
         [Display(Name = "Mã nhân viên")]
-        [Required(ErrorMessage = "Vui lòng nhập mã nhân viên")]
         public int StaffId { get; set; }
 
         public List<OrderItemViewModel> OrderItems { get; set; } = new List<OrderItemViewModel>();
 
         [Display(Name = "Tổng tiền")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Tổng tiền phải lớn hơn 0")]
         public decimal TotalAmount { get; set; }
     }
 

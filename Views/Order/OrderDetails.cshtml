@@ -32,6 +32,7 @@
                             <p><strong>Tổng tiền:</strong> @Model.PHIEUDAT.TongTien.ToString("N0")đ</p>
                             <p><strong>Trạng thái:</strong> @Model.TrangThai</p>
                             <p><strong>Ghi chú:</strong> @Model.PHIEUDAT.GhiChu</p>
+                            <p><strong>Ngày thanh toán:</strong> @Model.DONHANG.NgayThanhToan</p>
                             <!-- Kiểm tra nếu trạng thái là 'dangXuLy' thì hiển thị nút Hủy đơn -->
                             @if (Model.DONHANG != null && Model.DONHANG.TrangThaiDonHang == WebBookStoreManage.Models.TrangThaiDonHang.dangXuLy)
                             {

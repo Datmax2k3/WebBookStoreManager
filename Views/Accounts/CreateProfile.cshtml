@@ -1,4 +1,4 @@
-﻿@model WebBookStoreManage.Models.NGUOIDUNG
+﻿@model WebBookStoreManage.ViewModels.CreateProfileViewModel
 
 @{
     ViewData["Title"] = "Tạo thông tin tài khoản";
@@ -14,25 +14,33 @@
             <!-- Nội dung chính -->
             <div class="main-content">
                 <h2>Tạo thông tin tài khoản</h2>
+                @* Hiển thị tổng hợp lỗi (nếu có) *@
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
                 <form asp-action="CreateProfile" method="post">
                     <div class="form-group">
-                        <label for="TenNguoiDung">Họ tên</label>
+                        <label asp-for="TenNguoiDung"></label>
                         <input asp-for="TenNguoiDung" class="form-control" required />
                         <span asp-validation-for="TenNguoiDung" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label for="DiaChi">Địa chỉ</label>
+                        <label asp-for="DiaChi"></label>
                         <input asp-for="DiaChi" class="form-control" placeholder="Nhập địa chỉ" />
                         <span asp-validation-for="DiaChi" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label for="Email">Email</label>
+                        <label asp-for="Email"></label>
                         <input asp-for="Email" class="form-control" />
                         <span asp-validation-for="Email" class="text-danger"></span>
+                        <button type="button" id="sendVerificationCode" class="btn btn-secondary">Gửi mã xác thực</button>
                     </div>
                     <div class="form-group">
-                        <label for="soDienThoai">Số điện thoại</label>
+                        <label asp-for="VerificationCode">Mã xác thực</label>
+                        <input asp-for="VerificationCode" class="form-control" />
+                        <span asp-validation-for="VerificationCode" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="soDienThoai"></label>
                         <input asp-for="soDienThoai" class="form-control" />
                         <span asp-validation-for="soDienThoai" class="text-danger"></span>
                     </div>
@@ -45,4 +53,27 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Sự kiện gửi mã xác thực
+        document.getElementById('sendVerificationCode').addEventListener('click', function () {
+            var email = document.getElementById('Email').value;
+            fetch('/Account/SendVerificationCode?email=' + encodeURIComponent(email), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Mã xác thực đã được gửi đến email của bạn.');
+                    } else {
+                        alert(data.message || 'Có lỗi xảy ra khi gửi mã xác thực.');
+                    }
+                })
+                .catch(error => {
+                    alert('Có lỗi xảy ra: ' + error);
+                });
+        });
+    </script>
 }

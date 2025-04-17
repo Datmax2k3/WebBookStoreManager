@@ -24,5 +24,7 @@ namespace WebBookStoreManage.ViewModels
         public string PaymentMethod { get; set; }
 
         public decimal ShippingFee { get; set; }
+
+        public bool IsPaid { get; set; }
     }
 }

@@ -15,7 +15,7 @@
                 <i class="fas fa-plus mr-2"></i> Thêm sản phẩm mới
             </a>
             <a href="/SanPhams/AddToExcel" class="btn btn-primary">
-                <i class="fas fa-plus mr-2"></i> Thêm bằng file excel
+                <i class="fas fa-file-excel mr-2"></i> Thêm bằng file excel
             </a>
         </div>
     </div>
@@ -26,42 +26,64 @@
             <h5 class="mb-0">Bộ lọc sản phẩm</h5>
         </div>
         <div class="card-body">
-            <form id="productFilterForm" method="get" class="row g-3">
+            <form id="productFilterForm" method="get" action="@Url.Action("Index")" class="row g-3">
                 <div class="col-md-3">
                     <label for="searchKeyword" class="form-label">Từ khóa</label>
-                    <input type="text" class="form-control" id="searchKeyword" name="searchKeyword" placeholder="Tên hoặc mã sản phẩm">
+                    <input type="text" class="form-control" id="searchKeyword" name="searchKeyword"
+                           placeholder="Tên hoặc mã sản phẩm" value="@ViewBag.SearchKeyword">
                 </div>
                 <div class="col-md-3">
                     <label for="categoryId" class="form-label">Danh mục</label>
-                    <select class="form-select" id="categoryId" name="categoryId">
-                        <option value="">Tất cả danh mục</option>
-                        <!-- Danh sách danh mục sẽ được bind từ Controller -->
-                    </select>
+                    @Html.DropDownList("categoryId", (SelectList)ViewBag.Categories, "Tất cả danh mục", new { @class = "form-select" })
                 </div>
                 <div class="col-md-2">
                     <label for="status" class="form-label">Trạng thái</label>
-                    <select class="form-select" id="status" name="status">
-                        <option value="">Tất cả</option>
-                        <option value="conHang">Còn hàng</option>
-                        <option value="hetHang">Hết hàng</option>
-                        <option value="ngungKinhDoanh">Ngừng kinh doanh</option>
+                    <select class="form-select" id="status" name="status" asp-items="@(new SelectList(new[]
+                        {
+                            new SelectListItem { Text = "Tất cả", Value = "" },
+                            new SelectListItem { Text = "Còn hàng", Value = "conHang", Selected = ViewBag.Status == "conHang" },
+                            new SelectListItem { Text = "Hết hàng", Value = "hetHang", Selected = ViewBag.Status == "hetHang" },
+                            new SelectListItem { Text = "Ngừng kinh doanh", Value = "ngungKinhDoanh", Selected = ViewBag.Status == "ngungKinhDoanh" }
+                        }, "Value", "Text"))">
                     </select>
                 </div>
                 <div class="col-md-2">
                     <label for="sortBy" class="form-label">Sắp xếp theo</label>
-                    <select class="form-select" id="sortBy" name="sortBy">
-                        <option value="newest">Mới nhất</option>
-                        <option value="priceAsc">Giá tăng dần</option>
-                        <option value="priceDesc">Giá giảm dần</option>
-                        <option value="nameAsc">Tên A-Z</option>
-                        <option value="nameDesc">Tên Z-A</option>
-                        <option value="bestSeller">Bán chạy nhất</option>
+                    <select class="form-select" id="sortBy" name="sortBy" asp-items="@(new SelectList(new[]
+                        {
+                            new SelectListItem { Text = "Mới nhất", Value = "newest", Selected = ViewBag.SortBy == "newest" || ViewBag.SortBy == null },
+                            new SelectListItem { Text = "Giá tăng dần", Value = "priceAsc", Selected = ViewBag.SortBy == "priceAsc" },
+                            new SelectListItem { Text = "Giá giảm dần", Value = "priceDesc", Selected = ViewBag.SortBy == "priceDesc" },
+                            new SelectListItem { Text = "Tên A-Z", Value = "nameAsc", Selected = ViewBag.SortBy == "nameAsc" },
+                            new SelectListItem { Text = "Tên Z-A", Value = "nameDesc", Selected = ViewBag.SortBy == "nameDesc" },
+                            new SelectListItem { Text = "Bán chạy nhất", Value = "bestSeller", Selected = ViewBag.SortBy == "bestSeller" }
+                        }, "Value", "Text"))">
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="fas fa-search mr-2"></i> Lọc
                     </button>
+                </div>
+                <div class="col-12 mt-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <span class="text-muted">Số mục trên mỗi trang:</span>
+                            <select id="pageSize" name="pageSize" class="form-select form-select-sm d-inline-block ms-2" style="width: auto;"
+                                    asp-items="@(new SelectList(new[]
+                                {
+                                    new SelectListItem { Text = "10", Value = "10", Selected = ViewBag.PageSize == 10 },
+                                    new SelectListItem { Text = "20", Value = "20", Selected = ViewBag.PageSize == 20 },
+                                }, "Value", "Text"))">
+                            </select>
+                        </div>
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchKeyword) || ViewBag.CategoryId != null || !string.IsNullOrEmpty(ViewBag.Status))
+                        {
+                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-times me-1"></i> Xóa bộ lọc
+                            </a>
+                        }
+                    </div>
                 </div>
             </form>
         </div>
@@ -71,15 +93,10 @@
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 class="m-0 font-weight-bold">Danh sách sản phẩm</h5>
-            <div class="d-flex align-items-center">
-                <span class="mr-3">Hiển thị: </span>
-                <select class="form-select form-select-sm" id="pageSize" style="width: 80px">
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-            </div>
+            @if (ViewBag.TotalItems > 0)
+            {
+                <span class="text-muted">Tìm thấy @ViewBag.TotalItems sản phẩm</span>
+            }
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -105,7 +122,7 @@
                                 <tr>
                                     <td class="px-4 py-3">@item.IdSanPham</td>
                                     <td class="px-4 py-3">
-                                        <img src="~/images/product/@(string.IsNullOrEmpty(item.hinhAnh) ? "/images/no-image.png" : item.hinhAnh)"
+                                        <img src="~/images/product/@(string.IsNullOrEmpty(item.hinhAnh) ? "no-image.png" : item.hinhAnh)"
                                              alt="@item.TenSanPham"
                                              class="img-thumbnail"
                                              style="width: 60px; height: 60px; object-fit: cover;">
@@ -114,7 +131,7 @@
                                         <div class="fw-bold">@item.TenSanPham</div>
                                         <small class="text-muted">Lượt xem: @item.SoLuotXem</small>
                                     </td>
-                                    <td class="px-4 py-3">@item.DanhMucChiTiet.TenDanhMucCT</td>
+                                    <td class="px-4 py-3">@item.DanhMucChiTiet?.TenDanhMucCT</td>
                                     <td class="px-4 py-3 text-end">
                                         @if (item.GiamGia > 0)
                                         {
@@ -152,10 +169,10 @@
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         <div class="btn-group">
-                                            <a href="/SanPham/Edit/@item.IdSanPham" class="btn btn-sm btn-outline-primary me-1">
+                                            <a href="/SanPhams/Edit/@item.IdSanPham" class="btn btn-sm btn-outline-primary me-1">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <a href="/SanPham/Details/@item.IdSanPham" class="btn btn-sm btn-outline-info me-1">
+                                            <a href="/SanPhams/Details/@item.IdSanPham" class="btn btn-sm btn-outline-info me-1">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             <button type="button" class="btn btn-sm btn-outline-danger delete-product"
@@ -171,7 +188,28 @@
                         else
                         {
                             <tr>
-                                <td colspan="9" class="text-center py-4">Không có sản phẩm nào</td>
+                                <td colspan="9" class="text-center py-4">
+                                    @if (!string.IsNullOrEmpty(ViewBag.SearchKeyword) || ViewBag.CategoryId != null || !string.IsNullOrEmpty(ViewBag.Status))
+                                    {
+                                        <div>
+                                            <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                                            <p>Không tìm thấy sản phẩm phù hợp với điều kiện tìm kiếm</p>
+                                            <a href="@Url.Action("Index")" class="btn btn-outline-primary">
+                                                <i class="fas fa-times me-1"></i> Xóa bộ lọc
+                                            </a>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div>
+                                            <i class="fas fa-box-open fa-2x text-muted mb-3"></i>
+                                            <p>Không có sản phẩm nào</p>
+                                            <a href="@Url.Action("Create")" class="btn btn-primary">
+                                                <i class="fas fa-plus me-1"></i> Thêm sản phẩm mới
+                                            </a>
+                                        </div>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -199,17 +237,26 @@
                             {
                                 startPage = Math.Max(1, endPage - displayPages + 1);
                             }
+
+                            // Xây dựng URL cho phân trang với các tham số lọc
+                            Func<int, string> getPageUrl = (int p) => Url.Action("Index", new
+                            {
+                                page = p,
+                                pageSize = ViewBag.PageSize,
+                                searchKeyword = ViewBag.SearchKeyword,
+                                categoryId = ViewBag.CategoryId,
+                                status = ViewBag.Status,
+                                sortBy = ViewBag.SortBy
+                            });
                         }
 
                         @* Nút Đầu và Trước *@
                         @if (currentPage > 1)
                         {
-                            <a href="@Url.Action("Index", new { page = 1, pageSize = ViewBag.PageSize })"
-                               class="btn btn-sm btn-outline-primary me-2">
+                            <a href="@getPageUrl(1)" class="btn btn-sm btn-outline-primary me-2">
                                 <i class="fas fa-angle-double-left"></i>
                             </a>
-                            <a href="@Url.Action("Index", new { page = currentPage - 1, pageSize = ViewBag.PageSize })"
-                               class="btn btn-sm btn-outline-primary me-2">
+                            <a href="@getPageUrl(currentPage - 1)" class="btn btn-sm btn-outline-primary me-2">
                                 <i class="fas fa-angle-left"></i>
                             </a>
                         }
@@ -223,20 +270,17 @@
                             }
                             else
                             {
-                                <a href="@Url.Action("Index", new { page = i, pageSize = ViewBag.PageSize })"
-                                   class="btn btn-outline-primary btn-sm mx-1">@i</a>
+                                <a href="@getPageUrl(i)" class="btn btn-outline-primary btn-sm mx-1">@i</a>
                             }
                         }
 
                         @* Nút Tiếp và Cuối *@
                         @if (currentPage < totalPages)
                         {
-                            <a href="@Url.Action("Index", new { page = currentPage + 1, pageSize = ViewBag.PageSize })"
-                               class="btn btn-sm btn-outline-primary ms-2">
+                            <a href="@getPageUrl(currentPage + 1)" class="btn btn-sm btn-outline-primary ms-2">
                                 <i class="fas fa-angle-right"></i>
                             </a>
-                            <a href="@Url.Action("Index", new { page = totalPages, pageSize = ViewBag.PageSize })"
-                               class="btn btn-sm btn-outline-primary ms-2">
+                            <a href="@getPageUrl(totalPages)" class="btn btn-sm btn-outline-primary ms-2">
                                 <i class="fas fa-angle-double-right"></i>
                             </a>
                         }
@@ -272,26 +316,25 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Xử lý thay đổi số lượng hiển thị mỗi trang
-            $('#pageSize').change(function() {
-                var url = new URL(window.location.href);
-                url.searchParams.set('pageSize', $(this).val());
-                url.searchParams.set('page', 1);
-                window.location.href = url.toString();
+            $('#pageSize').change(function () {
+                $('#productFilterForm').submit();
             });
 
-            // Đặt giá trị đã chọn cho pageSize dropdown
-            $('#pageSize').val('@ViewBag.PageSize');
-
             // Xử lý modal xóa sản phẩm
-            $('.delete-product').click(function() {
+            $('.delete-product').click(function () {
                 var productId = $(this).data('id');
                 var productName = $(this).data('name');
 
                 $('#productNameToDelete').text(productName);
-                $('#deleteProductForm').attr('action', '/SanPham/Delete/' + productId);
+                $('#deleteProductForm').attr('action', '/SanPhams/Delete/' + productId);
                 $('#deleteProductModal').modal('show');
+            });
+
+            // Xử lý khi thay đổi trạng thái hoặc sắp xếp
+            $('#status, #sortBy, #categoryId').change(function () {
+                $('#productFilterForm').submit();
             });
         });
     </script>

@@ -10,15 +10,19 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using WebBookStoreManage.Data;
 using WebBookStoreManage.Models;
+using WebBookStoreManage.Services;
+using WebBookStoreManage.ViewModels;
 
 namespace WebBookStoreManage.Controllers
 {
     public class AccountsController : Controller
     {
         private readonly WebBookStoreManageContext _context;
-        public AccountsController(WebBookStoreManageContext context)
+        private readonly EmailService _emailSender;
+        public AccountsController(WebBookStoreManageContext context, EmailService emailSender)
         {
             _context = context;
+            _emailSender = emailSender;
         }
         public IActionResult Index()
         {
@@ -171,47 +175,101 @@ namespace WebBookStoreManage.Controllers
             if (!int.TryParse(idTaiKhoanStr, out int idTaiKhoan))
                 return RedirectToAction("Login");
 
-            // Kiểm tra nếu đã có profile thì chuyển đến Profile
+            // Nếu profile đã tồn tại
             var user = await _context.NGUOIDUNG.FirstOrDefaultAsync(u => u.IdTaiKhoan == idTaiKhoan);
             if (user != null && !string.IsNullOrEmpty(user.TenNguoiDung))
                 return RedirectToAction("Profile");
 
-            // Nếu chưa có profile, tạo một model mới
-            var model = new NGUOIDUNG();
+            // Khởi tạo ViewModel mới
+            var model = new CreateProfileViewModel();
             return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateProfile(NGUOIDUNG model)
+        public async Task<IActionResult> CreateProfile(CreateProfileViewModel model)
         {
+            if (!User.Identity.IsAuthenticated)
+                return RedirectToAction("Login");
+
+            // Validate các trường bắt buộc
+            if (string.IsNullOrEmpty(model.Email))
+                ModelState.AddModelError("Email", "Email không được để trống");
+
+            if (string.IsNullOrEmpty(model.VerificationCode))
+                ModelState.AddModelError("VerificationCode", "Mã xác thực không được để trống");
+
+            // Kiểm tra nếu email đã tồn tại
+            var existingUser = await _context.NGUOIDUNG.FirstOrDefaultAsync(u => u.Email == model.Email);
+            if (existingUser != null)
+                ModelState.AddModelError("Email", "Email đã được sử dụng.");
+
+            // Lấy mã xác thực từ Session (đã được lưu trong SendVerificationCode)
+            var sessionCode = HttpContext.Session.GetString("VerificationCode");
+            var sessionEmail = HttpContext.Session.GetString("VerificationEmail");
+
+            // Kiểm tra mã xác thực nếu email trùng với email trong session
+            if (!string.IsNullOrEmpty(model.Email) && model.Email == sessionEmail)
+            {
+                if (string.IsNullOrEmpty(sessionCode) || model.VerificationCode != sessionCode)
+                {
+                    ModelState.AddModelError("VerificationCode", "Mã xác thực không đúng.");
+                }
+            }
+            else
+            {
+                // Nếu email không trùng với email trong session, cần báo lỗi
+                ModelState.AddModelError("Email", "Email không khớp với email đã nhận mã xác thực.");
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            var idTaiKhoanStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(idTaiKhoanStr, out int idTaiKhoan))
+            // Nếu hợp lệ, tạo mới hồ sơ
+            var idTaiKhoan = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var newUser = new NGUOIDUNG
             {
-                return RedirectToAction("Login");
-            }
+                IdTaiKhoan = idTaiKhoan,
+                TenNguoiDung = model.TenNguoiDung,
+                DiaChi = model.DiaChi,
+                Email = model.Email,
+                soDienThoai = model.soDienThoai
+            };
 
-            // Kiểm tra xem hồ sơ của người dùng này đã tồn tại chưa
-            var existingUser = await _context.NGUOIDUNG.FirstOrDefaultAsync(u => u.IdTaiKhoan == idTaiKhoan);
-            if (existingUser != null)
-            {
-                // Nếu đã có hồ sơ thì chuyển hướng đến trang Profile
-                return RedirectToAction("Profile");
-            }
-
-            // Nếu chưa có, tạo mới hồ sơ
-            // Email và các trường khác sẽ được nhập từ form (đảm bảo email được điền đầy đủ)
-            model.IdTaiKhoan = idTaiKhoan; // gán IdTaiKhoan từ Claims vào model
-            _context.NGUOIDUNG.Add(model);
+            _context.NGUOIDUNG.Add(newUser);
             await _context.SaveChangesAsync();
+
+            // Xóa dữ liệu trong Session sau khi hoàn tất
+            HttpContext.Session.Remove("VerificationCode");
+            HttpContext.Session.Remove("VerificationEmail");
 
             return RedirectToAction("Profile");
         }
+
+        [HttpPost]
+        [Route("Account/SendVerificationCode")]
+        public async Task<IActionResult> SendVerificationCode(string email)
+        {
+            // Kiểm tra email có tồn tại trong database không
+            var existingUser = await _context.NGUOIDUNG.FirstOrDefaultAsync(u => u.Email == email);
+            if (existingUser != null)
+            {
+                return Json(new { success = false, message = "Email đã được sử dụng." });
+            }
+
+            // Sinh mã xác thực ngẫu nhiên (ví dụ: 6 chữ số)
+            var verificationCode = new Random().Next(100000, 999999).ToString();
+            HttpContext.Session.SetString("VerificationCode", verificationCode);
+            HttpContext.Session.SetString("VerificationEmail", email);
+
+            // Gửi email chứa mã xác thực
+            await _emailSender.SendEmailAsync(email, "Mã xác thực", $"Mã xác thực của bạn là: {verificationCode}");
+
+            return Json(new { success = true });
+        }
+
 
 
         // GET: EditProfile – hiển thị form cập nhật thông tin cá nhân

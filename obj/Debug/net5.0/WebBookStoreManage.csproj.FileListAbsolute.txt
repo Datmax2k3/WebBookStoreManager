@@ -294,3 +294,15 @@ D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\Employ
 D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\DirectOrder\Create.cshtml.g.cs
 D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Admin\RevenueReport.cshtml.g.cs
 D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Admin\ProductManager.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\bin\Debug\net5.0\BouncyCastle.Cryptography.dll
+D:\Workspace\N4_HK2\WebBookStoreManage\bin\Debug\net5.0\MailKit.dll
+D:\Workspace\N4_HK2\WebBookStoreManage\bin\Debug\net5.0\MimeKit.dll
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\MomoPayment.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\PaymentSuccess.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\bin\Debug\net5.0\RestSharp.dll
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Order\PaymentFailed.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\bin\Debug\net5.0\Microsoft.Extensions.Caching.Abstractions.dll
+D:\Workspace\N4_HK2\WebBookStoreManage\bin\Debug\net5.0\Microsoft.Extensions.Caching.Memory.dll
+D:\Workspace\N4_HK2\WebBookStoreManage\bin\Debug\net5.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+D:\Workspace\N4_HK2\WebBookStoreManage\bin\Debug\net5.0\Microsoft.Extensions.Logging.Abstractions.dll
+D:\Workspace\N4_HK2\WebBookStoreManage\bin\Debug\net5.0\Microsoft.Extensions.Options.dll

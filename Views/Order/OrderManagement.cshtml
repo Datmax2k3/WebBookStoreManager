@@ -1,12 +1,49 @@
 ﻿@model IEnumerable<WebBookStoreManage.ViewModels.OrderViewModel>
 @{
-    ViewData["Title"] = "Quản lý bán hàng";
+    ViewData["Title"] = "Quản lý đơn hàng";
 }
+<style>
+    /* Pagination Styles */
+    .pagination .page-link {
+        color: #6c757d;
+        border-color: #dee2e6;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: white;
+    }
+
+    .pagination .page-link:hover {
+        background-color: #e9ecef;
+        color: #0d6efd;
+    }
+
+    /* Card Styles */
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    /* Table Styles */
+    .table td, .table th {
+        vertical-align: middle;
+    }
+
+    /* Status Badge Styles */
+    .badge {
+        padding: 0.5em 0.75em;
+        font-weight: 500;
+        font-size: 0.75rem;
+    }
+</style>
 <div class="container my-5">
     <div class="row mb-4">
         <div class="col-md-8">
-            <h1 class="mb-0">Quản lý bán hàng</h1>
-            <p class="text-muted">Quản lý đơn hàng trực tiếp tại cửa hàng</p>
+            <h1 class="mb-0">Thông tin đơn hàng</h1>
+            <p class="text-muted">Quản lý đơn hàng của bạn</p>
         </div>
     </div>
 
@@ -20,37 +57,39 @@
 
     <div class="card">
         <div class="card-header bg-light">
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="input-group">
-                        <input type="text" id="searchInput" style="margin:0;" class="form-control" placeholder="Tìm kiếm đơn hàng..." />
-                        <button class="btn btn-outline-secondary" style="margin:0;" type="button">
-                            <i class="fas fa-search"></i>
-                        </button>
+            <form asp-action="OrderManagement" method="get" id="filterForm">
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Tìm kiếm đơn hàng..." />
+                            <button class="btn btn-outline-secondary" style="margin-top: 0; height: 38px;" type="submit">
+                                <i class="fas fa-search"></i> Tìm kiếm
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <select name="status" class="form-select" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="dangXuLy" selected="@(ViewBag.Status=="dangXuLy")">Đang xử lý</option>
+                            <option value="daDuyet" selected="@(ViewBag.Status=="daDuyet")">Đã duyệt</option>
+                            <option value="dangVanChuyen" selected="@(ViewBag.Status=="dangVanChuyen")">Đang vận chuyển</option>
+                            <option value="hoanThanh" selected="@(ViewBag.Status=="hoanThanh")">Hoàn thành</option>
+                            <option value="daHuy" selected="@(ViewBag.Status=="daHuy")">Đã hủy</option>
+                        </select>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <select id="statusFilter" class="form-select">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="dangXuLy">Đang xử lý</option>
-                        <option value="daDuyet">Đã duyệt</option>
-                        <option value="dangVanChuyen">Đang vận chuyển</option>
-                        <option value="hoanThanh">Hoàn thành</option>
-                        <option value="daHuy">Đã hủy</option>
-                    </select>
-                </div>
-            </div>
+                <input type="hidden" name="page" id="pageInput" value="@ViewBag.CurrentPage" />
+            </form>
         </div>
         <div class="card-body p-0">
             @if (Model != null && Model.Any())
             {
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="orderTable">
+                    <table class="table table-hover mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th>Mã đơn</th>
                                 <th>Ngày đặt</th>
-                                <th>Tên khách hàng</th>
                                 <th>Địa chỉ giao hàng</th>
                                 <th>Tổng tiền</th>
                                 <th>Trạng thái</th>
@@ -60,10 +99,9 @@
                         <tbody>
                             @foreach (var order in Model)
                             {
-                                <tr class="order-row" data-status="@(order.DONHANG?.TrangThaiDonHang.ToString() ?? "")">
+                                <tr>
                                     <td>@order.PHIEUDAT.IdPhieuDat</td>
                                     <td>@order.PHIEUDAT.NgayTaoPhieu.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td>@(order.PHIEUDAT.NguoiDung?.TenNguoiDung ?? "Khách vãng lai")</td>
                                     <td>
                                         @if (order.PHIEUDAT.DiaChiGiaoHang != null)
                                         {
@@ -114,12 +152,86 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Phân trang -->
+                <div class="d-flex justify-content-between align-items-center p-3 bg-light">
+                    <div>
+                        Hiển thị <strong>@Model.Count()</strong> của <strong>@ViewBag.TotalItems</strong> đơn hàng
+                    </div>
+                    <nav aria-label="Page navigation">
+                        @if (ViewBag.TotalPages > 1)
+                        {
+                            <ul class="pagination mb-0">
+                                <!-- Previous Page -->
+                                @if (ViewBag.CurrentPage > 1)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(ViewBag.CurrentPage - 1))">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><span aria-hidden="true">&laquo;</span></span>
+                                    </li>
+                                }
+
+                                <!-- Page Numbers -->
+                                @{
+                                    int startPage = Math.Max(1, ViewBag.CurrentPage - 2);
+                                    int endPage = Math.Min(ViewBag.TotalPages, startPage + 4);
+
+                                    if (endPage - startPage < 4 && startPage > 1)
+                                    {
+                                        startPage = Math.Max(1, endPage - 4);
+                                    }
+                                }
+
+                                @for (int i = startPage; i <= endPage; i++)
+                                {
+                                    if (i == ViewBag.CurrentPage)
+                                    {
+                                        <li class="page-item active">
+                                            <span class="page-link">@i</span>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                                        </li>
+                                    }
+                                }
+
+                                <!-- Next Page -->
+                                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(ViewBag.CurrentPage + 1))">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><span aria-hidden="true">&raquo;</span></span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </nav>
+                </div>
             }
             else
             {
                 <div class="text-center py-5">
                     <i class="fas fa-shopping-cart fa-3x mb-3 text-muted"></i>
                     <h5>Chưa có đơn hàng nào</h5>
+                    <p class="text-muted">Không tìm thấy đơn hàng phù hợp với các tiêu chí tìm kiếm</p>
+                    <a asp-action="OrderManagement" class="btn btn-outline-primary mt-2">Xem tất cả đơn hàng</a>
                 </div>
             }
         </div>
@@ -128,26 +240,9 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            // Lọc đơn hàng theo trạng thái
-            $("#statusFilter").change(function() {
-                var status = $(this).val();
-
-                if (status === "") {
-                    $(".order-row").show();
-                } else {
-                    $(".order-row").hide();
-                    $(`.order-row[data-status="${status}"]`).show();
-                }
-            });
-
-            // Tìm kiếm đơn hàng
-            $("#searchInput").on("keyup", function() {
-                var value = $(this).val().toLowerCase();
-                $("#orderTable tbody tr").filter(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-                });
-            });
-        });
+        function goToPage(page) {
+            document.getElementById('pageInput').value = page;
+            document.getElementById('filterForm').submit();
+        }
     </script>
 }

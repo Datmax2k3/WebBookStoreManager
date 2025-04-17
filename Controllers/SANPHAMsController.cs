@@ -26,17 +26,56 @@ namespace WebBookStoreManage.Controllers
         }
 
         // GET: SANPHAMs
-        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(
+            string searchKeyword = "",
+            int? categoryId = null,
+            string status = "",
+            string sortBy = "newest",
+            int page = 1,
+            int pageSize = 10)
         {
             // Đảm bảo page và pageSize hợp lệ
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
 
-            // Lấy danh sách sản phẩm dưới dạng IQueryable để áp dụng phân trang,
-            // bao gồm cả thông tin DanhMucChiTiet qua phương thức Include
-            var products = _context.SANPHAM.Include(s => s.DanhMucChiTiet).AsQueryable();
+            // Lấy danh sách sản phẩm dưới dạng IQueryable để áp dụng lọc và phân trang
+            var products = _context.SANPHAM
+                .Include(s => s.DanhMucChiTiet)
+                .ThenInclude(d => d.DanhMuc)
+                .AsQueryable();
 
-            // Tính tổng số bản ghi
+            // Lọc theo từ khóa (tên sản phẩm hoặc mã sản phẩm)
+            if (!string.IsNullOrEmpty(searchKeyword))
+            {
+                products = products.Where(p =>
+                    p.TenSanPham.Contains(searchKeyword) ||
+                    p.IdSanPham.Contains(searchKeyword));
+            }
+
+            // Lọc theo danh mục
+            if (categoryId.HasValue && categoryId > 0)
+            {
+                products = products.Where(p => p.IdDanhMucCT == categoryId);
+            }
+
+            // Lọc theo trạng thái
+            if (!string.IsNullOrEmpty(status))
+            {
+                products = products.Where(p => p.TrangThai == status);
+            }
+
+            // Sắp xếp sản phẩm
+            products = sortBy switch
+            {
+                "priceAsc" => products.OrderBy(p => p.GiaBan ?? p.GiaGoc),
+                "priceDesc" => products.OrderByDescending(p => p.GiaBan ?? p.GiaGoc),
+                "nameAsc" => products.OrderBy(p => p.TenSanPham),
+                "nameDesc" => products.OrderByDescending(p => p.TenSanPham),
+                "bestSeller" => products.OrderByDescending(p => p.SoLuongDaBan),
+                _ => products.OrderByDescending(p => p.IdSanPham) // newest by default
+            };
+
+            // Tính tổng số bản ghi sau khi áp dụng các điều kiện lọc
             var totalItems = await products.CountAsync();
 
             // Tính tổng số trang
@@ -47,14 +86,28 @@ namespace WebBookStoreManage.Controllers
                 page = totalPages;
 
             // Lấy danh sách sản phẩm cho trang hiện tại
-            var items = await products.Skip((page - 1) * pageSize)
-                                      .Take(pageSize)
-                                      .ToListAsync();
+            var items = await products
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
-            // Truyền thông tin phân trang vào ViewBag để sử dụng trong view
+            // Chuẩn bị danh sách danh mục để hiển thị trong dropdown
+            var categories = await _context.DANHMUCCHITIET
+                .Include(d => d.DanhMuc)
+                .OrderBy(d => d.DanhMuc.ThuTu)
+                .ThenBy(d => d.TenDanhMucCT)
+                .ToListAsync();
+
+            // Truyền dữ liệu vào ViewBag để sử dụng trong view
+            ViewBag.TotalItems = totalItems;
             ViewBag.TotalPages = totalPages;
             ViewBag.CurrentPage = page;
             ViewBag.PageSize = pageSize;
+            ViewBag.SearchKeyword = searchKeyword;
+            ViewBag.CategoryId = categoryId;
+            ViewBag.Status = status;
+            ViewBag.SortBy = sortBy;
+            ViewBag.Categories = new SelectList(categories, "IdDanhMucCT", "TenDanhMucCT", categoryId);
 
             return View(items);
         }

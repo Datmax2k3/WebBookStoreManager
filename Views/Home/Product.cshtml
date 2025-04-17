@@ -6,8 +6,19 @@
 
 @model WebBookStoreManage.ViewModels.ProductViewModel
 
+<ul class="tabs nav nav-tabs" style="margin: 0; padding: 12px; border-bottom: 1px solid #E0E0E0;">
+    @foreach (var danhMuc in Model.DanhMucs)
+    {
+        <li class="nav-item tab" data-category-id="@danhMuc.IdDanhMuc" data-tab-target="#@danhMuc.TenDanhMuc.ToLower().Replace(" ", "-")">
+            <a class="nav-link" href="@Url.Action("Product", new { categoryId = danhMuc.IdDanhMuc, page = 1 })">
+                @danhMuc.TenDanhMuc
+            </a>
+        </li>
+    }
+</ul>
+
 <section id="popular-books" class="bookshelf py-5 my-5" style="margin-top:0 !important; padding-top:0 !important;">
-    <div class="container p-5">
+    <div class="container p-5" style="padding-top: 0 !important;">
         <div class="row" style="background-color:#ffffff; ">
             <div class="col-md-3" style="padding: 0; background-color: #f3f2ed; ">
                 @await Html.PartialAsync("Navbar/_ProductFilter", Model)

@@ -9,7 +9,7 @@
     <h1>Tạo đơn hàng trực tiếp</h1>
     <p>Nhập thông tin đơn hàng để xử lý bán hàng trực tiếp tại quầy.</p>
 
-    <form asp-action="CreateDirectOrder" method="post">
+    <form asp-action="CreateDirectOrder" method="post" id="orderForm">
         <div class="form-group mb-3">
             <label asp-for="OrderDate" class="form-label">Ngày đặt</label>
             <input asp-for="OrderDate" class="form-control" readonly value="@DateTime.Now.ToString("yyyy-MM-dd HH:mm")" />
@@ -22,37 +22,34 @@
             <span asp-validation-for="Note" class="text-danger"></span>
         </div>
 
-        <div class="form-group mb-3">
-            <label asp-for="StaffId" class="form-label">Nhân viên</label>
-            <select asp-for="StaffId" class="form-select" asp-items="@(ViewBag.StaffList ?? new SelectList(new List<SelectListItem>()))">
-                <option value="">--Chọn nhân viên--</option>
-            </select>
-            <span asp-validation-for="StaffId" class="text-danger"></span>
-        </div>
+        <!-- Ẩn trường nhân viên và sử dụng giá trị từ người đăng nhập -->
+        <input type="hidden" asp-for="StaffId" value="@ViewBag.CurrentStaffId" />
+
+        <!-- Thêm trường ẩn để lưu JSON của OrderItems -->
+        <input type="hidden" name="OrderItemsJson" id="orderItemsJson" value="" />
 
         <h3>Chi tiết đơn hàng</h3>
         <div id="orderItemsContainer">
-            <div class="order-item mb-3 row">
+            <div class="order-item mb-3 row" id="default-item" style="display: none;">
                 <div class="col-md-6">
                     <label>Sản phẩm</label>
-                    <select name="OrderItems[0].ProductId" class="form-select product-select" onchange="updatePrice(this, 0)">
+                    <select class="form-select product-select" data-index="0" onchange="updatePrice(this)">
                         <option value="">--Chọn sản phẩm--</option>
                         @foreach (var product in (ViewBag.Products as List<WebBookStoreManage.Models.SANPHAM>) ?? new List<WebBookStoreManage.Models.SANPHAM>())
                         {
-                        <option value="@product.IdSanPham" data-price="@(product.GiaBan.HasValue ? product.GiaBan.Value : 0)">
-                            @product.TenSanPham (@(product.GiaBan.HasValue ? product.GiaBan.Value.ToString("N0") : "0"))đ, tồn: @product.SoLuongCon
-                        </option>
+                            <option value="@product.IdSanPham" data-price="@(product.GiaBan.HasValue ? product.GiaBan.Value : 0)">
+                                @product.TenSanPham (@(product.GiaBan.HasValue ? product.GiaBan.Value.ToString("N0") : "0"))đ, tồn: @product.SoLuongCon
+                            </option>
                         }
                     </select>
                 </div>
                 <div class="col-md-2">
                     <label>Số lượng</label>
-                    <input type="number" name="OrderItems[0].Quantity" class="form-control quantity-input" value="1" min="1" onchange="updatePrice(document.querySelector('[name=\'OrderItems[0].ProductId\']'), 0)" />
+                    <input type="number" class="form-control quantity-input" data-index="0" value="1" min="1" onchange="updatePrice(this)" />
                 </div>
                 <div class="col-md-3">
                     <label>Thành tiền</label>
-                    <input type="text" class="form-control amount-display" readonly id="amount-0" value="0 đ" />
-                    <input type="hidden" name="OrderItems[0].Amount" id="amount-hidden-0" value="0" />
+                    <input type="text" class="form-control amount-display" readonly data-index="0" value="0 đ" />
                 </div>
                 <div class="col-md-1">
                     <label>&nbsp;</label>
@@ -71,6 +68,18 @@
             </div>
         </div>
 
+        <div class="validation-summary-valid text-danger" data-valmsg-summary="true">
+            <ul>
+                @if (ViewData.ModelState.ErrorCount > 0)
+                {
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                }
+            </ul>
+        </div>
+
         <button type="submit" class="btn btn-primary">Tạo đơn hàng</button>
     </form>
 </div>
@@ -78,52 +87,98 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        // Mảng để lưu trữ các mục đơn hàng
+        var orderItems = [];
+        var nextIndex = 1; // Bắt đầu từ 1 vì đã có sản phẩm mặc định với index 0
 
         $(document).ready(function () {
-            // Khởi tạo Select2 cho dropdown sản phẩm
-            $('.select2').select2({
-                placeholder: "--Chọn sản phẩm--",
-                allowClear: true,
-                width: '100%'
-            });
+            // Khởi tạo mảng orderItems với item mặc định
+            initializeOrderItems();
+
+            // Tính tổng tiền ban đầu
+            calculateTotal();
         });
-        var itemIndex = 1;
+
+        function initializeOrderItems() {
+            // Tạo lại mảng orderItems từ phần tử mặc định
+            orderItems = [{
+                index: 0,
+                productId: '',
+                quantity: 1,
+                price: 0,
+                amount: 0
+            }];
+
+            // Cập nhật JSON
+            updateOrderItemsJson();
+        }
 
         function formatCurrency(amount) {
             return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
         }
 
-        function updatePrice(selectElement, index) {
-            var selectedOption = selectElement.options[selectElement.selectedIndex];
-            var price = selectedOption ? parseFloat(selectedOption.dataset.price || 0) : 0;
-            var quantity = parseInt(document.querySelector(`[name='OrderItems[${index}].Quantity']`).value || 1);
-            var amount = price * quantity;
+        function updatePrice(element) {
+            var index = parseInt(element.getAttribute('data-index'));
+            var item = orderItems.find(i => i.index === index);
 
-            document.getElementById(`amount-${index}`).value = formatCurrency(amount);
-            document.getElementById(`amount-hidden-${index}`).value = amount;
+            if (!item) {
+                console.error("Item not found for index", index);
+                return;
+            }
 
+            // Kiểm tra loại phần tử
+            if (element.classList.contains('product-select')) {
+                // Cập nhật productId
+                item.productId = element.value;
+
+                // Cập nhật giá
+                if (element.selectedIndex >= 0) {
+                    item.price = parseFloat(element.options[element.selectedIndex].getAttribute('data-price') || 0);
+                } else {
+                    item.price = 0;
+                }
+            } else if (element.classList.contains('quantity-input')) {
+                // Cập nhật số lượng
+                item.quantity = parseInt(element.value || 1);
+            }
+
+            // Tính lại thành tiền
+            item.amount = item.price * item.quantity;
+
+            // Cập nhật hiển thị
+            document.querySelector(`.amount-display[data-index="${index}"]`).value = formatCurrency(item.amount);
+
+            // Cập nhật tổng tiền
             calculateTotal();
+
+            // Cập nhật giá trị JSON cho form
+            updateOrderItemsJson();
         }
 
         function calculateTotal() {
             var total = 0;
-            var hiddenAmounts = document.querySelectorAll('[id^="amount-hidden-"]');
-            hiddenAmounts.forEach(function(el) {
-                total += parseFloat(el.value || 0);
+
+            // Tính tổng từ mảng orderItems
+            orderItems.forEach(function(item) {
+                total += item.amount;
             });
 
+            // Cập nhật hiển thị
             document.getElementById('totalAmount').textContent = formatCurrency(total);
-            document.getElementById('totalAmountHidden').value = total;
+            document.getElementById('totalAmountHidden').value = total.toString();
         }
 
         function addOrderItem() {
             var container = document.getElementById("orderItemsContainer");
+            var productTemplate = document.getElementById("product-template");
             var newItem = document.createElement("div");
             newItem.className = "order-item mb-3 row";
+
+            // Tạo HTML cho item mới
             newItem.innerHTML = `
                 <div class="col-md-6">
                     <label>Sản phẩm</label>
-                    <select name="OrderItems[${itemIndex}].ProductId" class="form-select product-select" onchange="updatePrice(this, ${itemIndex})">
+                    <select class="form-select product-select" data-index="${nextIndex}" onchange="updatePrice(this)">
                         <option value="">--Chọn sản phẩm--</option>
                         @foreach (var product in (ViewBag.Products as List<WebBookStoreManage.Models.SANPHAM>) ?? new List<WebBookStoreManage.Models.SANPHAM>())
                         {
@@ -135,29 +190,86 @@
                 </div>
                 <div class="col-md-2">
                     <label>Số lượng</label>
-                    <input type="number" name="OrderItems[${itemIndex}].Quantity" class="form-control quantity-input" value="1" min="1" onchange="updatePrice(document.querySelector('[name=\'OrderItems[${itemIndex}].ProductId\']'), ${itemIndex})" />
+                    <input type="number" class="form-control quantity-input" data-index="${nextIndex}" value="1" min="1" onchange="updatePrice(this)" />
                 </div>
                 <div class="col-md-3">
                     <label>Thành tiền</label>
-                    <input type="text" class="form-control amount-display" readonly id="amount-${itemIndex}" value="0 đ" />
-                    <input type="hidden" name="OrderItems[${itemIndex}].Amount" id="amount-hidden-${itemIndex}" value="0" />
+                    <input type="text" class="form-control amount-display" readonly data-index="${nextIndex}" value="0 đ" />
                 </div>
                 <div class="col-md-1">
                     <label>&nbsp;</label>
                     <button type="button" class="btn btn-danger form-control" onclick="removeOrderItem(this)" style="margin-top: 6px;">Xóa</button>
                 </div>
             `;
+
             container.appendChild(newItem);
-            itemIndex++;
+
+            // Thêm vào mảng quản lý
+            orderItems.push({
+                index: nextIndex,
+                productId: '',
+                quantity: 1,
+                price: 0,
+                amount: 0
+            });
+
+            // Tăng index cho item tiếp theo
+            nextIndex++;
+
+            // Cập nhật giá trị JSON cho form
+            updateOrderItemsJson();
         }
 
         function removeOrderItem(button) {
-            if (document.querySelectorAll('.order-item').length > 1) {
-                button.closest('.order-item').remove();
-                calculateTotal();
-            } else {
+            if (document.querySelectorAll('.order-item').length <= 1) {
                 alert('Đơn hàng phải có ít nhất một sản phẩm');
+                return;
             }
+
+            var item = button.closest('.order-item');
+            var index = parseInt(item.querySelector('.product-select').getAttribute('data-index'));
+
+            // Xóa khỏi mảng
+            var itemIndex = orderItems.findIndex(i => i.index === index);
+            if (itemIndex !== -1) {
+                orderItems.splice(itemIndex, 1);
+            }
+
+            // Xóa khỏi DOM
+            item.remove();
+
+            // Cập nhật tổng tiền
+            calculateTotal();
+
+            // Cập nhật giá trị JSON cho form
+            updateOrderItemsJson();
         }
+
+        function updateOrderItemsJson() {
+            // Lọc ra chỉ những item có chọn sản phẩm
+            var validItems = orderItems.filter(function(item) {
+                return item.productId && item.productId.trim() !== '';
+            });
+
+            // Chuyển đổi thành chuỗi JSON và lưu vào input ẩn
+            document.getElementById('orderItemsJson').value = JSON.stringify(validItems);
+        }
+
+        // Xác nhận trước khi gửi form
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            // Cập nhật lại JSON một lần nữa trước khi gửi
+            updateOrderItemsJson();
+
+            // Kiểm tra xem có sản phẩm nào được chọn không
+            var validItems = orderItems.filter(function(item) {
+                return item.productId && item.productId.trim() !== '';
+            });
+
+            if (validItems.length === 0) {
+                e.preventDefault();
+                alert('Vui lòng chọn ít nhất một sản phẩm');
+                return false;
+            }
+        });
     </script>
 }

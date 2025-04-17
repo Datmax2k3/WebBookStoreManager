@@ -37,7 +37,7 @@
                         <input type="radio" name="PaymentMethod" value="cod" checked> Ship COD
                     </label>
                     <label class="d-block">
-                        <input type="radio" name="PaymentMethod" value="bank"> Chuyển khoản ngân hàng
+                        <input type="radio" name="PaymentMethod" value="momo"> Thanh toán MoMo
                     </label>
                     <!-- Input ẩn để truyền ID địa chỉ -->
                     <input type="hidden" name="DeliveryAddress.IdDiaChi" value="@Model.DeliveryAddress.IdDiaChi" />
@@ -96,6 +96,11 @@
 
         document.querySelectorAll('input[name="ShippingMethod"]').forEach(function (elem) {
             elem.addEventListener("change", updateFee);
+        });
+
+        document.querySelector('form').addEventListener('submit', function (e) {
+            var selectedPayment = document.querySelector('input[name="PaymentMethod"]:checked').value;
+            console.log('Selected payment method: ' + selectedPayment);
         });
 
         updateFee();
