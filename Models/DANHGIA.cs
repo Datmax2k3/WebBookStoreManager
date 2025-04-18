@@ -26,6 +26,9 @@ namespace WebBookStoreManage.Models
         [Column("idNguoiDung")]
         public int IdNguoiDung { get; set; }
 
+        [Column("thoiGian")]
+        public DateTime ThoiGian { get; set; } = DateTime.Now;
+
         [ForeignKey("IdSanPham")]
         public SANPHAM SanPham { get; set; }
 

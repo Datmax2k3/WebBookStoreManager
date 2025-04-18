@@ -73,6 +73,8 @@ namespace WebBookStoreManage
             services.AddHttpClient();
 
             services.AddMemoryCache();
+            // Đăng ký PasswordService
+            services.AddScoped<WebBookStoreManage.PasswordService.PasswordService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

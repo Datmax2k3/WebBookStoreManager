@@ -1,56 +1,129 @@
 ﻿@model WebBookStoreManage.Models.NHANVIEN
-
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Chỉnh Sửa Nhân Viên";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Edit</h1>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-user-edit me-2"></i> Chỉnh Sửa Nhân Viên
+                    </h3>
+                    <a asp-action="Index" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
+                    </a>
+                </div>
 
-<h4>NHANVIEN</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="IdNhanVien" />
-            <div class="form-group">
-                <label asp-for="TenNhanVien" class="control-label"></label>
-                <input asp-for="TenNhanVien" class="form-control" />
-                <span asp-validation-for="TenNhanVien" class="text-danger"></span>
+                <form asp-action="Edit" method="post">
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <input type="hidden" asp-for="IdNhanVien" />
+
+                        <div class="row">
+                            <!-- Thông tin cá nhân -->
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-id-card me-2"></i> Thông Tin Cá Nhân
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group mb-3">
+                                            <label asp-for="TenNhanVien" class="form-label">Họ và tên</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                                <input asp-for="TenNhanVien" class="form-control" required />
+                                            </div>
+                                            <span asp-validation-for="TenNhanVien" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label asp-for="Email" class="form-label">Email</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                                <input asp-for="Email" class="form-control" type="email" required />
+                                            </div>
+                                            <span asp-validation-for="Email" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label asp-for="DienThoai" class="form-label">Số điện thoại</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                                <input asp-for="DienThoai" class="form-control" required />
+                                            </div>
+                                            <span asp-validation-for="DienThoai" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Thông tin công việc -->
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-briefcase me-2"></i> Thông Tin Công Việc
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group mb-3">
+                                            <label asp-for="NgayVaoLam" class="form-label">Ngày vào làm</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                                <input asp-for="NgayVaoLam" class="form-control" type="date" required />
+                                            </div>
+                                            <span asp-validation-for="NgayVaoLam" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label asp-for="IdLoaiNhanVien" class="form-label">Chức vụ</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
+                                                <select asp-for="IdLoaiNhanVien" class="form-select" required
+                                                        asp-items="ViewBag.IdLoaiNhanVien">
+                                                </select>
+                                            </div>
+                                            <span asp-validation-for="IdLoaiNhanVien" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label asp-for="IdTaiKhoan" class="form-label">Tài khoản</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-user-lock"></i></span>
+                                                <select asp-for="IdTaiKhoan" class="form-select" required
+                                                        asp-items="ViewBag.IdTaiKhoan">
+                                                </select>
+                                            </div>
+                                            <span asp-validation-for="IdTaiKhoan" class="text-danger"></span>
+                                            <small class="form-text text-muted">Tài khoản được liên kết với nhân viên này</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Lưu Thay Đổi
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DienThoai" class="control-label"></label>
-                <input asp-for="DienThoai" class="form-control" />
-                <span asp-validation-for="DienThoai" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="NgayVaoLam" class="control-label"></label>
-                <input asp-for="NgayVaoLam" class="form-control" />
-                <span asp-validation-for="NgayVaoLam" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="IdLoaiNhanVien" class="control-label"></label>
-                <select asp-for="IdLoaiNhanVien" class="form-control" asp-items="ViewBag.IdLoaiNhanVien"></select>
-                <span asp-validation-for="IdLoaiNhanVien" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="IdTaiKhoan" class="control-label"></label>
-                <select asp-for="IdTaiKhoan" class="form-control" asp-items="ViewBag.IdTaiKhoan"></select>
-                <span asp-validation-for="IdTaiKhoan" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

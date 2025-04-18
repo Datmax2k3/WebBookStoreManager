@@ -1,51 +1,130 @@
-﻿@model WebBookStoreManage.Models.NHANVIEN
-
+﻿@model WebBookStoreManage.ViewModels.NhanVienViewModel
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Thêm Nhân Viên Mới";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Create</h1>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-user-plus mr-2"></i> Thêm Nhân Viên Mới
+                    </h3>
+                </div>
 
-<h4>NHANVIEN</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="TenNhanVien" class="control-label"></label>
-                <input asp-for="TenNhanVien" class="form-control" />
-                <span asp-validation-for="TenNhanVien" class="text-danger"></span>
+                <form asp-action="Create" method="post">
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="row">
+                            <!-- Thông tin nhân viên -->
+                            <div class="col-md-6">
+                                <h4 class="mb-3">Thông tin nhân viên</h4>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="NhanVien.TenNhanVien" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                    <input asp-for="NhanVien.TenNhanVien" class="form-control" required />
+                                    <span asp-validation-for="NhanVien.TenNhanVien" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="NhanVien.Email" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <input asp-for="NhanVien.Email" class="form-control" type="email" required />
+                                    <span asp-validation-for="NhanVien.Email" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="NhanVien.DienThoai" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                    <input asp-for="NhanVien.DienThoai" class="form-control" required />
+                                    <span asp-validation-for="NhanVien.DienThoai" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="NhanVien.IdLoaiNhanVien" class="form-label">Loại nhân viên <span class="text-danger">*</span></label>
+                                    <select asp-for="NhanVien.IdLoaiNhanVien" class="form-select" required
+                                            asp-items="ViewBag.IdLoaiNhanVien">
+                                        <option value="">-- Chọn loại nhân viên --</option>
+                                    </select>
+                                    <span asp-validation-for="NhanVien.IdLoaiNhanVien" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Thông tin tài khoản -->
+                            <div class="col-md-6">
+                                <h4 class="mb-3">Thông tin tài khoản</h4>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="TaiKhoan.TenDangNhap" class="form-label">Tên đăng nhập <span class="text-danger">*</span></label>
+                                    <input asp-for="TaiKhoan.TenDangNhap" class="form-control" required />
+                                    <span asp-validation-for="TaiKhoan.TenDangNhap" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="TaiKhoan.MatKhau" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                                    <input asp-for="TaiKhoan.MatKhau" type="password" class="form-control" required />
+                                    <span asp-validation-for="TaiKhoan.MatKhau" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="XacNhanMatKhau" class="form-label">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                                    <input name="XacNhanMatKhau" id="XacNhanMatKhau" type="password" class="form-control" required />
+                                    <span class="text-danger" id="matKhauError"></span>
+                                </div>
+
+                                <!-- Hiển thị thông tin Vai trò -->
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Vai trò</label>
+                                    <input type="text" class="form-control" value="Nhân viên" disabled />
+                                    <input type="hidden" asp-for="TaiKhoan.IdVaiTro" value="2" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left mr-1"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-1"></i> Lưu nhân viên
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DienThoai" class="control-label"></label>
-                <input asp-for="DienThoai" class="form-control" />
-                <span asp-validation-for="DienThoai" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="IdLoaiNhanVien" class="control-label"></label>
-                <select asp-for="IdLoaiNhanVien" class="form-control" asp-items="ViewBag.IdLoaiNhanVien"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="IdTaiKhoan" class="control-label"></label>
-                <select asp-for="IdTaiKhoan" class="form-control" asp-items="ViewBag.IdTaiKhoan">
-                    <option value="">--Chọn Tài Khoản--</option>
-                </select>
-                <span asp-validation-for="IdTaiKhoan" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const matKhau = document.getElementById('TaiKhoan_MatKhau');
+            const xacNhanMatKhau = document.getElementById('XacNhanMatKhau');
+            const matKhauError = document.getElementById('matKhauError');
+            const form = document.querySelector('form');
+
+            // Kiểm tra khớp mật khẩu khi submit form
+            form.addEventListener('submit', function(e) {
+                if (matKhau.value !== xacNhanMatKhau.value) {
+                    e.preventDefault();
+                    matKhauError.textContent = 'Mật khẩu xác nhận không khớp!';
+                } else {
+                    matKhauError.textContent = '';
+                }
+            });
+
+            // Kiểm tra khớp mật khẩu khi nhập
+            xacNhanMatKhau.addEventListener('input', function() {
+                if (matKhau.value !== xacNhanMatKhau.value) {
+                    matKhauError.textContent = 'Mật khẩu xác nhận không khớp!';
+                } else {
+                    matKhauError.textContent = '';
+                }
+            });
+        });
+    </script>
+}

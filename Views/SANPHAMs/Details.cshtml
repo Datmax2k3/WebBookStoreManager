@@ -1,85 +1,175 @@
 ﻿@model WebBookStoreManage.Models.SANPHAM
-
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Chi Tiết Sản Phẩm";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Details</h1>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-info-circle mr-2"></i> Chi Tiết Sản Phẩm
+                    </h3>
+                </div>
 
-<div>
-    <h4>SANPHAM</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DanhMucChiTiet)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DanhMucChiTiet.TenDanhMucCT)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TenSanPham)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TenSanPham)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.GiaGoc)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.GiaGoc)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.GiamGia)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.GiamGia)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NgayXuatBan)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgayXuatBan)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.SoLuotXem)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.SoLuotXem)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.SoLuongCon)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.SoLuongCon)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.SoLuongDaBan)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.SoLuongDaBan)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MoTaChiTiet)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MoTaChiTiet)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TrangThai)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TrangThai)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.hinhAnh)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.hinhAnh)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.IdSanPham">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Thông Tin Sản Phẩm -->
+                        <div class="col-md-8">
+                            <table class="table table-striped">
+                                <tr>
+                                    <th style="width: 30%">Mã Sản Phẩm</th>
+                                    <td>@Model.IdSanPham</td>
+                                </tr>
+                                <tr>
+                                    <th>Tên Sản Phẩm</th>
+                                    <td>@Model.TenSanPham</td>
+                                </tr>
+                                <tr>
+                                    <th>Danh Mục</th>
+                                    <td>@Model.DanhMucChiTiet?.TenDanhMucCT</td>
+                                </tr>
+                                <tr>
+                                    <th>Trạng Thái</th>
+                                    <td>
+                                        @{
+                                            var trangThai = Model.TrangThai switch
+                                            {
+                                                "conHang" => "Còn Hàng",
+                                                "hetHang" => "Hết Hàng",
+                                                "ngungKinhDoanh" => "Ngừng Kinh Doanh",
+                                                _ => Model.TrangThai
+                                            };
+                                            var badgeClass = Model.TrangThai switch
+                                            {
+                                                "conHang" => "badge bg-success",
+                                                "hetHang" => "badge bg-warning",
+                                                "ngungKinhDoanh" => "badge bg-danger",
+                                                _ => "badge bg-secondary"
+                                            };
+                                        }
+                                        <span class="@badgeClass">@trangThai</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Giá Gốc</th>
+                                    <td>@Model.GiaGoc.ToString("N0") VNĐ</td>
+                                </tr>
+                                <tr>
+                                    <th>Giảm Giá</th>
+                                    <td>@Model.GiamGia% (@((Model.GiaGoc * Model.GiamGia / 100).ToString("N0")) VNĐ)</td>
+                                </tr>
+                                <tr>
+                                    <th>Giá Bán</th>
+                                    <td>
+                                        @{
+                                            var giaBan = Model.GiaBan ?? (Model.GiaGoc - (Model.GiaGoc * Model.GiamGia / 100));
+                                        }
+                                        <strong class="text-danger">@giaBan.ToString("N0") VNĐ</strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Số Lượng Tồn</th>
+                                    <td>@Model.SoLuongCon</td>
+                                </tr>
+                                <tr>
+                                    <th>Số Lượng Đã Bán</th>
+                                    <td>@Model.SoLuongDaBan</td>
+                                </tr>
+                                <tr>
+                                    <th>Số Lượt Xem</th>
+                                    <td>@Model.SoLuotXem</td>
+                                </tr>
+                                <tr>
+                                    <th>Ngày Xuất Bản</th>
+                                    <td>@(Model.NgayXuatBan?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</td>
+                                </tr>
+                            </table>
+
+                            <div class="mt-4">
+                                <h5>Mô Tả Chi Tiết</h5>
+                                <div class="p-3 bg-light rounded">
+                                    @if (!string.IsNullOrEmpty(Model.MoTaChiTiet))
+                                    {
+                                        <p>@Html.Raw(Model.MoTaChiTiet.Replace("\n", "<br/>"))</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">Không có mô tả chi tiết</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hình Ảnh -->
+                        <div class="col-md-4">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Hình Ảnh Sản Phẩm</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    @if (!string.IsNullOrEmpty(Model.hinhAnh))
+                                    {
+                                        <img src="@Url.Content("~/images/product/" + Model.hinhAnh)" alt="@Model.TenSanPham"
+                                             class="img-fluid rounded" style="max-height: 300px;" />
+                                    }
+                                    else
+                                    {
+                                        <img src="/images/no-image.png" alt="No Image"
+                                             class="img-fluid rounded" style="max-height: 300px;" />
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Thông Tin Thống Kê</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <div class="border rounded p-2 mb-2">
+                                                <h3 class="mb-0">@Model.SoLuongCon</h3>
+                                                <small class="text-muted">Tồn kho</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="border rounded p-2 mb-2">
+                                                <h3 class="mb-0">@Model.SoLuongDaBan</h3>
+                                                <small class="text-muted">Đã bán</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="border rounded p-2 mb-2">
+                                                <h3 class="mb-0">@Model.SoLuotXem</h3>
+                                                <small class="text-muted">Lượt xem</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left mr-2"></i> Quay Lại
+                        </a>
+                        <div>
+                            <a asp-action="Edit" asp-route-id="@Model.IdSanPham" class="btn btn-primary">
+                                <i class="fas fa-edit mr-2"></i> Chỉnh Sửa
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@Model.IdSanPham" class="btn btn-danger ml-2">
+                                <i class="fas fa-trash mr-2"></i> Xóa
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

@@ -39,210 +39,219 @@
         font-size: 0.75rem;
     }
 </style>
-<div class="container my-5">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="mb-0">Thông tin đơn hàng</h1>
-            <p class="text-muted">Quản lý đơn hàng của bạn</p>
-        </div>
-    </div>
 
-    @if (TempData["Message"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-            @TempData["Message"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <div class="card">
-        <div class="card-header bg-light">
-            <form asp-action="OrderManagement" method="get" id="filterForm">
-                <div class="row g-2">
+<body class="h-screen font-sans login bg-cover">
+    <div style="background-color: var(--light-color);">
+        <div class="container container-profile">
+            <!-- Sidebar bên trái -->
+            @Html.Partial("Navbar/_NavProfile")
+            <div class="container my-5">
+                <div class="row mb-4">
                     <div class="col-md-8">
-                        <div class="input-group">
-                            <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Tìm kiếm đơn hàng..." />
-                            <button class="btn btn-outline-secondary" style="margin-top: 0; height: 38px;" type="submit">
-                                <i class="fas fa-search"></i> Tìm kiếm
-                            </button>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <select name="status" class="form-select" onchange="document.getElementById('filterForm').submit()">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="dangXuLy" selected="@(ViewBag.Status=="dangXuLy")">Đang xử lý</option>
-                            <option value="daDuyet" selected="@(ViewBag.Status=="daDuyet")">Đã duyệt</option>
-                            <option value="dangVanChuyen" selected="@(ViewBag.Status=="dangVanChuyen")">Đang vận chuyển</option>
-                            <option value="hoanThanh" selected="@(ViewBag.Status=="hoanThanh")">Hoàn thành</option>
-                            <option value="daHuy" selected="@(ViewBag.Status=="daHuy")">Đã hủy</option>
-                        </select>
+                        <h1 class="mb-0">Thông tin đơn hàng</h1>
+                        <p class="text-muted">Quản lý đơn hàng của bạn</p>
                     </div>
                 </div>
-                <input type="hidden" name="page" id="pageInput" value="@ViewBag.CurrentPage" />
-            </form>
-        </div>
-        <div class="card-body p-0">
-            @if (Model != null && Model.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Mã đơn</th>
-                                <th>Ngày đặt</th>
-                                <th>Địa chỉ giao hàng</th>
-                                <th>Tổng tiền</th>
-                                <th>Trạng thái</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var order in Model)
-                            {
-                                <tr>
-                                    <td>@order.PHIEUDAT.IdPhieuDat</td>
-                                    <td>@order.PHIEUDAT.NgayTaoPhieu.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td>
-                                        @if (order.PHIEUDAT.DiaChiGiaoHang != null)
+
+                @if (TempData["Message"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                        @TempData["Message"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <form asp-action="OrderManagement" method="get" id="filterForm">
+                            <div class="row g-2">
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Tìm kiếm đơn hàng..." />
+                                        <button class="btn btn-outline-secondary" style="margin-top: 0; height: 38px;" type="submit">
+                                            <i class="fas fa-search"></i> Tìm kiếm
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <select name="status" class="form-select" onchange="document.getElementById('filterForm').submit()">
+                                        <option value="">Tất cả trạng thái</option>
+                                        <option value="dangXuLy" selected="@(ViewBag.Status=="dangXuLy")">Đang xử lý</option>
+                                        <option value="daDuyet" selected="@(ViewBag.Status=="daDuyet")">Đã duyệt</option>
+                                        <option value="dangVanChuyen" selected="@(ViewBag.Status=="dangVanChuyen")">Đang vận chuyển</option>
+                                        <option value="hoanThanh" selected="@(ViewBag.Status=="hoanThanh")">Hoàn thành</option>
+                                        <option value="daHuy" selected="@(ViewBag.Status=="daHuy")">Đã hủy</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <input type="hidden" name="page" id="pageInput" value="@ViewBag.CurrentPage" />
+                        </form>
+                    </div>
+                    <div class="card-body p-0">
+                        @if (Model != null && Model.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Mã đơn</th>
+                                            <th>Ngày đặt</th>
+                                            <th>Địa chỉ giao hàng</th>
+                                            <th>Tổng tiền</th>
+                                            <th>Trạng thái</th>
+                                            <th>Hành động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var order in Model)
                                         {
-                                            <span title="@order.PHIEUDAT.DiaChiGiaoHang.DiaChiGiaoHang">
-                                                @(order.PHIEUDAT.DiaChiGiaoHang.DiaChiGiaoHang?.Length > 25
+                                            <tr>
+                                                <td>@order.PHIEUDAT.IdPhieuDat</td>
+                                                <td>@order.PHIEUDAT.NgayTaoPhieu.ToString("dd/MM/yyyy HH:mm")</td>
+                                                <td>
+                                                    @if (order.PHIEUDAT.DiaChiGiaoHang != null)
+                                                    {
+                                                        <span title="@order.PHIEUDAT.DiaChiGiaoHang.DiaChiGiaoHang">
+                                                            @(order.PHIEUDAT.DiaChiGiaoHang.DiaChiGiaoHang?.Length > 25
                                                   ? order.PHIEUDAT.DiaChiGiaoHang.DiaChiGiaoHang.Substring(0, 25) + "..."
                                                   : order.PHIEUDAT.DiaChiGiaoHang.DiaChiGiaoHang)
-                                            </span>
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>Mua tại quầy</span>
+                                                    }
+                                                </td>
+                                                <td>@order.PHIEUDAT.TongTien.ToString("N0")đ</td>
+                                                <td>
+                                                    @{
+                                                        var status = order.DONHANG?.TrangThaiDonHang.ToString() ?? "N/A";
+                                                        var statusClass = status switch
+                                                        {
+                                                            "dangXuLy" => "bg-warning",
+                                                            "daDuyet" => "bg-info",
+                                                            "dangVanChuyen" => "bg-primary",
+                                                            "hoanThanh" => "bg-success",
+                                                            "daHuy" => "bg-danger",
+                                                            _ => "bg-secondary"
+                                                        };
+                                                        var statusText = status switch
+                                                        {
+                                                            "dangXuLy" => "Đang xử lý",
+                                                            "daDuyet" => "Đã duyệt",
+                                                            "dangVanChuyen" => "Đang vận chuyển",
+                                                            "hoanThanh" => "Hoàn thành",
+                                                            "daHuy" => "Đã hủy",
+                                                            _ => "N/A"
+                                                        };
+                                                    }
+                                                    <span class="badge @statusClass">@statusText</span>
+                                                </td>
+                                                <td>
+                                                    <a asp-action="OrderDetails" asp-route-id="@order.PHIEUDAT.IdPhieuDat"
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-eye"></i> Chi tiết
+                                                    </a>
+                                                </td>
+                                            </tr>
                                         }
-                                        else
-                                        {
-                                            <span>Mua tại quầy</span>
-                                        }
-                                    </td>
-                                    <td>@order.PHIEUDAT.TongTien.ToString("N0")đ</td>
-                                    <td>
-                                        @{
-                                            var status = order.DONHANG?.TrangThaiDonHang.ToString() ?? "N/A";
-                                            var statusClass = status switch
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Phân trang -->
+                            <div class="d-flex justify-content-between align-items-center p-3 bg-light">
+                                <div>
+                                    Hiển thị <strong>@Model.Count()</strong> của <strong>@ViewBag.TotalItems</strong> đơn hàng
+                                </div>
+                                <nav aria-label="Page navigation">
+                                    @if (ViewBag.TotalPages > 1)
+                                    {
+                                        <ul class="pagination mb-0">
+                                            <!-- Previous Page -->
+                                            @if (ViewBag.CurrentPage > 1)
                                             {
-                                                "dangXuLy" => "bg-warning",
-                                                "daDuyet" => "bg-info",
-                                                "dangVanChuyen" => "bg-primary",
-                                                "hoanThanh" => "bg-success",
-                                                "daHuy" => "bg-danger",
-                                                _ => "bg-secondary"
-                                            };
-                                            var statusText = status switch
+                                                <li class="page-item">
+                                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(ViewBag.CurrentPage - 1))">
+                                                        <span aria-hidden="true">&laquo;</span>
+                                                    </a>
+                                                </li>
+                                            }
+                                            else
                                             {
-                                                "dangXuLy" => "Đang xử lý",
-                                                "daDuyet" => "Đã duyệt",
-                                                "dangVanChuyen" => "Đang vận chuyển",
-                                                "hoanThanh" => "Hoàn thành",
-                                                "daHuy" => "Đã hủy",
-                                                _ => "N/A"
-                                            };
-                                        }
-                                        <span class="badge @statusClass">@statusText</span>
-                                    </td>
-                                    <td>
-                                        <a asp-action="OrderDetails" asp-route-id="@order.PHIEUDAT.IdPhieuDat"
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> Chi tiết
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                                                <li class="page-item disabled">
+                                                    <span class="page-link"><span aria-hidden="true">&laquo;</span></span>
+                                                </li>
+                                            }
 
-                <!-- Phân trang -->
-                <div class="d-flex justify-content-between align-items-center p-3 bg-light">
-                    <div>
-                        Hiển thị <strong>@Model.Count()</strong> của <strong>@ViewBag.TotalItems</strong> đơn hàng
-                    </div>
-                    <nav aria-label="Page navigation">
-                        @if (ViewBag.TotalPages > 1)
-                        {
-                            <ul class="pagination mb-0">
-                                <!-- Previous Page -->
-                                @if (ViewBag.CurrentPage > 1)
-                                {
-                                    <li class="page-item">
-                                        <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(ViewBag.CurrentPage - 1))">
-                                            <span aria-hidden="true">&laquo;</span>
-                                        </a>
-                                    </li>
-                                }
-                                else
-                                {
-                                    <li class="page-item disabled">
-                                        <span class="page-link"><span aria-hidden="true">&laquo;</span></span>
-                                    </li>
-                                }
+                                            <!-- Page Numbers -->
+                                            @{
+                                                int startPage = Math.Max(1, ViewBag.CurrentPage - 2);
+                                                int endPage = Math.Min(ViewBag.TotalPages, startPage + 4);
 
-                                <!-- Page Numbers -->
-                                @{
-                                    int startPage = Math.Max(1, ViewBag.CurrentPage - 2);
-                                    int endPage = Math.Min(ViewBag.TotalPages, startPage + 4);
+                                                if (endPage - startPage < 4 && startPage > 1)
+                                                {
+                                                    startPage = Math.Max(1, endPage - 4);
+                                                }
+                                            }
 
-                                    if (endPage - startPage < 4 && startPage > 1)
-                                    {
-                                        startPage = Math.Max(1, endPage - 4);
+                                            @for (int i = startPage; i <= endPage; i++)
+                                            {
+                                                if (i == ViewBag.CurrentPage)
+                                                {
+                                                    <li class="page-item active">
+                                                        <span class="page-link">@i</span>
+                                                    </li>
+                                                }
+                                                else
+                                                {
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                                                    </li>
+                                                }
+                                            }
+
+                                            <!-- Next Page -->
+                                            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                                            {
+                                                <li class="page-item">
+                                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(ViewBag.CurrentPage + 1))">
+                                                        <span aria-hidden="true">&raquo;</span>
+                                                    </a>
+                                                </li>
+                                            }
+                                            else
+                                            {
+                                                <li class="page-item disabled">
+                                                    <span class="page-link"><span aria-hidden="true">&raquo;</span></span>
+                                                </li>
+                                            }
+                                        </ul>
                                     }
-                                }
-
-                                @for (int i = startPage; i <= endPage; i++)
-                                {
-                                    if (i == ViewBag.CurrentPage)
-                                    {
-                                        <li class="page-item active">
-                                            <span class="page-link">@i</span>
-                                        </li>
-                                    }
-                                    else
-                                    {
-                                        <li class="page-item">
-                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
-                                        </li>
-                                    }
-                                }
-
-                                <!-- Next Page -->
-                                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-                                {
-                                    <li class="page-item">
-                                        <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(ViewBag.CurrentPage + 1))">
-                                            <span aria-hidden="true">&raquo;</span>
-                                        </a>
-                                    </li>
-                                }
-                                else
-                                {
-                                    <li class="page-item disabled">
-                                        <span class="page-link"><span aria-hidden="true">&raquo;</span></span>
-                                    </li>
-                                }
-                            </ul>
+                                </nav>
+                            </div>
                         }
-                    </nav>
+                        else
+                        {
+                            <div class="text-center py-5">
+                                <i class="fas fa-shopping-cart fa-3x mb-3 text-muted"></i>
+                                <h5>Chưa có đơn hàng nào</h5>
+                                <p class="text-muted">Không tìm thấy đơn hàng phù hợp với các tiêu chí tìm kiếm</p>
+                                <a asp-action="OrderManagement" class="btn btn-outline-primary mt-2">Xem tất cả đơn hàng</a>
+                            </div>
+                        }
+                    </div>
                 </div>
-            }
-            else
-            {
-                <div class="text-center py-5">
-                    <i class="fas fa-shopping-cart fa-3x mb-3 text-muted"></i>
-                    <h5>Chưa có đơn hàng nào</h5>
-                    <p class="text-muted">Không tìm thấy đơn hàng phù hợp với các tiêu chí tìm kiếm</p>
-                    <a asp-action="OrderManagement" class="btn btn-outline-primary mt-2">Xem tất cả đơn hàng</a>
-                </div>
+            </div>
+
+            @section Scripts {
+                <script>
+                    function goToPage(page) {
+                        document.getElementById('pageInput').value = page;
+                        document.getElementById('filterForm').submit();
+                    }
+                </script>
             }
         </div>
     </div>
-</div>
-
-@section Scripts {
-    <script>
-        function goToPage(page) {
-            document.getElementById('pageInput').value = page;
-            document.getElementById('filterForm').submit();
-        }
-    </script>
-}
+</body>

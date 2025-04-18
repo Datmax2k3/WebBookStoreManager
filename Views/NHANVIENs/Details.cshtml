@@ -1,55 +1,153 @@
 ﻿@model WebBookStoreManage.Models.NHANVIEN
-
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Chi Tiết Nhân Viên";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Details</h1>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Card chính -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-user-circle me-2"></i> Chi Tiết Nhân Viên
+                    </h3>
+                    <div>
+                        <a asp-action="Index" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
+                        </a>
+                    </div>
+                </div>
 
-<div>
-    <h4>NHANVIEN</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.TenNhanVien)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.TenNhanVien)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Email)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Email)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.DienThoai)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.DienThoai)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.NgayVaoLam)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.NgayVaoLam)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.LoaiNhanVien)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.LoaiNhanVien.TenLoaiNhanVien)
-        </dd>
-        <dt class="col-sm-2">
-            Tài Khoản
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.TaiKhoan.TenDangNhap)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.IdNhanVien">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Thông tin cá nhân -->
+                        <div class="col-lg-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-id-card me-2"></i> Thông Tin Cá Nhân
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-4">
+                                        <div class="bg-primary rounded-circle text-white p-3 me-3">
+                                            <i class="fas fa-user fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="mb-0">@Model.TenNhanVien</h4>
+                                            <span class="badge bg-info text-white mb-2">
+                                                @Model.LoaiNhanVien?.TenLoaiNhanVien
+                                            </span>
+                                            <p class="text-muted mb-0">
+                                                Nhân viên từ @Model.NgayVaoLam.ToString("dd/MM/yyyy")
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="list-group list-group-flush">
+                                        <div class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                                            <strong>Họ và tên</strong>
+                                            <span>@Model.TenNhanVien</span>
+                                        </div>
+
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <strong>Email</strong>
+                                            <a href="mailto:@Model.Email" class="text-decoration-none">
+                                                @Model.Email <i class="fas fa-envelope-open ms-1 text-muted"></i>
+                                            </a>
+                                        </div>
+
+                                        <div class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                                            <strong>Số điện thoại</strong>
+                                            <a href="tel:@Model.DienThoai" class="text-decoration-none">
+                                                @Model.DienThoai <i class="fas fa-phone ms-1 text-muted"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin công việc và tài khoản -->
+                        <div class="col-lg-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-briefcase me-2"></i> Thông Tin Công Việc
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group list-group-flush">
+                                        <div class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                                            <strong>Mã nhân viên</strong>
+                                            <span class="badge bg-secondary">NV-@Model.IdNhanVien.ToString("D4")</span>
+                                        </div>
+
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <strong>Ngày vào làm</strong>
+                                            <span>
+                                                @Model.NgayVaoLam.ToString("dd/MM/yyyy")
+                                                <small class="ms-1 text-muted">
+                                                    (@((DateTime.Now - Model.NgayVaoLam).Days / 365) năm @(((DateTime.Now - Model.NgayVaoLam).Days % 365) / 30) tháng)
+                                                </small>
+                                            </span>
+                                        </div>
+
+                                        <div class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                                            <strong>Chức vụ</strong>
+                                            <span class="badge bg-info text-white">@Model.LoaiNhanVien?.TenLoaiNhanVien</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-user-lock me-2"></i> Thông Tin Tài Khoản
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group list-group-flush">
+                                        <div class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                                            <strong>Tên đăng nhập</strong>
+                                            <span>@Model.TaiKhoan?.TenDangNhap</span>
+                                        </div>
+
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <strong>Vai trò</strong>
+                                            <span class="badge bg-dark text-white">Nhân viên</span>
+                                        </div>
+
+                                        <div class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                                            <strong>Mã tài khoản</strong>
+                                            <span class="text-muted">TK-@Model.TaiKhoan?.IdTaiKhoan.ToString("D4")</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
+                        </a>
+                        <div>
+                            <a asp-action="Edit" asp-route-id="@Model.IdNhanVien" class="btn btn-warning">
+                                <i class="fas fa-edit me-1"></i> Chỉnh sửa
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@Model.IdNhanVien" class="btn btn-danger ms-2">
+                                <i class="fas fa-trash me-1"></i> Xóa
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

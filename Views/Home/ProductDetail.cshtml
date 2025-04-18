@@ -34,20 +34,16 @@
                 <div class="product-category text-muted mb-2">
                     @if (Model.SanPhamTacGias != null && Model.SanPhamTacGias.Any())
                     {
-                        <span>Tác giả: </span>
+        <span>Tác giả: </span>
                         @foreach (var tacGia in Model.SanPhamTacGias)
                         {
-                            <span>@tacGia.TacGia.TenTacGia</span>
-                            if (tacGia != Model.SanPhamTacGias.Last())
+        <span>@tacGia.TacGia.TenTacGia</span> if (tacGia != Model.SanPhamTacGias.Last())
                             {
-                                <span>, </span>
-                            }
-                        }
-                    }
-                    else
-                    {
-                        <span>Không có thông tin tác giả</span>
-                    }
+        <span>, </span>}
+                        } }
+                                    else
+                                    {
+                        <span>Không có thông tin tác giả</span>}
                 </div>
 
                 <!-- Hiển thị giá -->
@@ -76,7 +72,7 @@
                 <div class="product-status mb-2">
                     <strong>Tình trạng:</strong>
                     @if (!string.IsNullOrEmpty(Model.TrangThai)
-                        && Model.TrangThai.Equals("Còn Hàng", StringComparison.OrdinalIgnoreCase))
+                       && Model.TrangThai.Equals("Còn Hàng", StringComparison.OrdinalIgnoreCase))
                     {
                         <span class="text-success ml-1">Còn hàng</span>
                     }
@@ -94,7 +90,7 @@
 
                 <!-- Chọn số lượng nếu còn hàng -->
                 @if (!string.IsNullOrEmpty(Model.TrangThai)
-                    && Model.TrangThai.Equals("Còn Hàng", StringComparison.OrdinalIgnoreCase))
+                   && Model.TrangThai.Equals("Còn Hàng", StringComparison.OrdinalIgnoreCase))
                 {
                     <div class="quantity-selector d-flex align-items-center mb-3">
                         <label class="mr-2 mb-0">Số lượng:</label>
@@ -112,7 +108,7 @@
                 <!-- Nút Thêm vào giỏ & Mua ngay -->
                 <div class="product-actions mb-3">
                     @if (!string.IsNullOrEmpty(Model.TrangThai)
-                        && Model.TrangThai.Equals("Còn Hàng", StringComparison.OrdinalIgnoreCase))
+                       && Model.TrangThai.Equals("Còn Hàng", StringComparison.OrdinalIgnoreCase))
                     {
                         <button type="button" class="btn btn-primary mr-2 add-to-cart" data-product-id="@Model.IdSanPham">
                             Thêm vào giỏ
@@ -145,6 +141,49 @@
             <div class="col-md-12">
                 <h3>Giới thiệu sản phẩm</h3>
                 <p>@Model.MoTaChiTiet</p>
+            </div>
+        </div>
+        <!-- Phần đánh giá sản phẩm -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">Đánh giá từ khách hàng (@ViewBag.DanhGiaCount)</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (ViewBag.DanhGia != null && ((List<WebBookStoreManage.Models.DANHGIA>)ViewBag.DanhGia).Any())
+                        {
+                            <div class="review-list">
+                                @foreach (var review in (List<WebBookStoreManage.Models.DANHGIA>)ViewBag.DanhGia)
+                                {
+                                    <div class="review-item mb-3 pb-3 border-bottom">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                                                 style="width: 40px; height: 40px;">
+                                                @(review.NguoiDung.TenNguoiDung.Substring(0, 1).ToUpper())
+                                            </div>
+                                            <div class="ml-2">
+                                                <h5 class="mb-0">@review.NguoiDung.TenNguoiDung</h5>
+                                                <small class="text-muted">@review.ThoiGian.ToString("dd/MM/yyyy HH:mm")</small>
+                                            </div>
+                                        </div>
+                                        <p class="review-content mb-0">@review.NoiDung</p>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <div class="mb-3">
+                                    <i class="fas fa-comments fa-4x text-muted"></i>
+                                </div>
+                                <h5>Chưa có đánh giá nào cho sản phẩm này</h5>
+                                <p class="text-muted">Hãy là người đầu tiên đánh giá sản phẩm này!</p>
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     </div>

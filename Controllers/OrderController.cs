@@ -601,6 +601,26 @@ namespace WebBookStoreManage.Controllers
             return View(orderViewModel);
         }
 
+        // Phương thức kiểm tra đánh giá đã tồn tại không
+        private async Task<Dictionary<string, bool>> CheckExistingRatings(int idNguoiDung, List<string> productIds)
+        {
+            var result = new Dictionary<string, bool>();
+
+            // Lấy tất cả đánh giá của người dùng với các sản phẩm cần kiểm tra
+            var existingRatings = await _context.DANHGIA
+                .Where(d => d.IdNguoiDung == idNguoiDung && productIds.Contains(d.IdSanPham))
+                .Select(d => d.IdSanPham)
+                .ToListAsync();
+
+            // Đánh dấu các sản phẩm đã được đánh giá
+            foreach (var productId in productIds)
+            {
+                result[productId] = existingRatings.Contains(productId);
+            }
+
+            return result;
+        }
+
         // Action hiển thị chi tiết đơn hàng của người dùng
         public async Task<IActionResult> OrderDetails(int? id)
         {
@@ -624,6 +644,22 @@ namespace WebBookStoreManage.Controllers
                 PHIEUDAT = order,
                 DONHANG = order.DonHangs?.FirstOrDefault() // Lấy đơn hàng đầu tiên nếu có
             };
+
+            // Kiểm tra trạng thái đơn hàng
+            var isCompleted = orderViewModel.DONHANG?.TrangThaiDonHang.ToString() == "hoanThanh";
+
+            // Nếu đơn hàng đã hoàn thành, kiểm tra đánh giá
+            if (isCompleted)
+            {
+                // Lấy danh sách sản phẩm trong đơn hàng
+                var productIds = order.ChiTietPhieuDats.Select(ct => ct.IdSanPham).ToList();
+
+                // Kiểm tra đánh giá đã tồn tại
+                var ratingStatus = await CheckExistingRatings((int)order.IdNguoiDung, productIds);
+
+                // Đưa kết quả vào ViewBag
+                ViewBag.RatingStatus = ratingStatus;
+            }
 
             return View(orderViewModel);
         }
@@ -806,6 +842,112 @@ namespace WebBookStoreManage.Controllers
             return View(orderViewModel);
         }
 
-        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddRating(DANHGIA danhGia)
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            // Kiểm tra ModelState
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Kiểm tra xem người dùng đã mua sản phẩm này và đơn hàng đã hoàn thành chưa
+                    var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int idTaiKhoan))
+                    {
+                        return RedirectToAction("Login", "Accounts");
+                    }
+
+                    var nguoiDung = await _context.NGUOIDUNG
+                        .FirstOrDefaultAsync(n => n.IdTaiKhoan == idTaiKhoan);
+
+                    if (nguoiDung == null || nguoiDung.IdNguoiDung != danhGia.IdNguoiDung)
+                    {
+                        TempData["Error"] = "Bạn không có quyền đánh giá sản phẩm này!";
+                        return RedirectToAction("OrderManagement");
+                    }
+
+                    // Kiểm tra sản phẩm có tồn tại không
+                    var sanPham = await _context.SANPHAM.FindAsync(danhGia.IdSanPham);
+                    if (sanPham == null)
+                    {
+                        TempData["Error"] = "Sản phẩm không tồn tại!";
+                        return RedirectToAction("OrderManagement");
+                    }
+
+                    // Kiểm tra xem người dùng đã từng mua sản phẩm này và đơn hàng đã hoàn thành chưa
+                    var hasPurchasedAndCompleted = await _context.PHIEUDAT
+                        .Where(p => p.IdNguoiDung == nguoiDung.IdNguoiDung)
+                        .Include(p => p.ChiTietPhieuDats)
+                        .Include(p => p.DonHangs)
+                        .AnyAsync(p => p.ChiTietPhieuDats.Any(ct => ct.IdSanPham == danhGia.IdSanPham) &&
+                                       p.DonHangs.Any(d => d.TrangThaiDonHang == TrangThaiDonHang.hoanThanh));
+
+                    if (!hasPurchasedAndCompleted)
+                    {
+                        TempData["Error"] = "Bạn chỉ có thể đánh giá sản phẩm khi đã mua và đơn hàng đã hoàn thành!";
+                        return RedirectToAction("OrderManagement");
+                    }
+
+                    // Kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
+                    var existingRating = await _context.DANHGIA
+                        .FirstOrDefaultAsync(d => d.IdNguoiDung == danhGia.IdNguoiDung && d.IdSanPham == danhGia.IdSanPham);
+
+                    if (existingRating != null)
+                    {
+                        // Cập nhật đánh giá cũ
+                        existingRating.NoiDung = danhGia.NoiDung;
+                        existingRating.ThoiGian = DateTime.Now; // Cập nhật thời gian đánh giá
+                        _context.Update(existingRating);
+                        TempData["Message"] = "Đã cập nhật đánh giá của bạn!";
+                    }
+                    else
+                    {
+                        // Thêm đánh giá mới
+                        danhGia.ThoiGian = DateTime.Now; // Đặt thời gian đánh giá
+                        _context.DANHGIA.Add(danhGia);
+                        TempData["Message"] = "Đã gửi đánh giá thành công!";
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    // Lấy ID đơn hàng từ request để quay lại trang chi tiết đơn hàng
+                    if (Request.Form.TryGetValue("OrderId", out var orderIdValue) && int.TryParse(orderIdValue, out int orderId))
+                    {
+                        return RedirectToAction("OrderDetails", new { id = orderId });
+                    }
+                    else if (Request.Query.ContainsKey("orderId") && int.TryParse(Request.Query["orderId"], out int queryOrderId))
+                    {
+                        return RedirectToAction("OrderDetails", new { id = queryOrderId });
+                    }
+                    else if (TempData.ContainsKey("OrderId") && TempData["OrderId"] != null)
+                    {
+                        int tempDataOrderId = (int)TempData["OrderId"];
+                        return RedirectToAction("OrderDetails", new { id = tempDataOrderId });
+                    }
+
+                    // Nếu không có ID đơn hàng, chuyển hướng về trang quản lý đơn hàng
+                    return RedirectToAction("OrderManagement");
+                }
+                catch (Exception ex)
+                {
+                    // Log lỗi và thông báo cho người dùng
+                    TempData["Error"] = $"Có lỗi xảy ra khi gửi đánh giá: {ex.Message}";
+                }
+            }
+            else
+            {
+                // Thông báo lỗi ModelState
+                TempData["Error"] = "Vui lòng điền đầy đủ thông tin đánh giá!";
+            }
+
+            return RedirectToAction("OrderManagement");
+        }
+
     }
 }

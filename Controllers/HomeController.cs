@@ -326,6 +326,16 @@ namespace WebBookStoreManage.Controllers
             sanPham.SoLuotXem++;
             await _context.SaveChangesAsync();
 
+            // Lấy danh sách đánh giá cho sản phẩm
+            var danhGiaList = await _context.DANHGIA
+                .Where(d => d.IdSanPham == id)
+                .Include(d => d.NguoiDung)
+                .OrderByDescending(d => d.IdDanhGia) // Sắp xếp theo ID mới nhất
+                .ToListAsync();
+
+            ViewBag.DanhGia = danhGiaList;
+            ViewBag.DanhGiaCount = danhGiaList.Count;
+
             return View(sanPham);
         }
 

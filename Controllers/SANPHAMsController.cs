@@ -178,7 +178,7 @@ namespace WebBookStoreManage.Controllers
                     }
 
                     // Lưu đường dẫn tương đối vào model
-                    sANPHAM.hinhAnh = $"/images/product/{uniqueFileName}";
+                    sANPHAM.hinhAnh = $"{uniqueFileName}";
                 }
 
                 // Lưu sản phẩm vào database
@@ -198,7 +198,7 @@ namespace WebBookStoreManage.Controllers
             return View(sANPHAM);
         }
 
-        // GET: SANPHAMs/Edit/5
+        [HttpGet]
         public async Task<IActionResult> Edit(string id)
         {
             if (id == null)
@@ -211,16 +211,16 @@ namespace WebBookStoreManage.Controllers
             {
                 return NotFound();
             }
+
+            // Lấy danh sách danh mục để hiển thị trong dropdown
             ViewData["IdDanhMucCT"] = new SelectList(_context.DANHMUCCHITIET, "IdDanhMucCT", "TenDanhMucCT", sANPHAM.IdDanhMucCT);
+
             return View(sANPHAM);
         }
 
-        // POST: SANPHAMs/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("IdSanPham,IdDanhMucCT,TenSanPham,GiaGoc,GiamGia,NgayXuatBan,SoLuotXem,SoLuongCon,SoLuongDaBan,MoTaChiTiet,TrangThai,hinhAnh")] SANPHAM sANPHAM)
+        public async Task<IActionResult> Edit(string id, SANPHAM sANPHAM, IFormFile hinhAnh)
         {
             if (id != sANPHAM.IdSanPham)
             {
@@ -231,8 +231,59 @@ namespace WebBookStoreManage.Controllers
             {
                 try
                 {
+                    // Lấy thông tin sản phẩm hiện tại từ database để giữ lại các thông tin không thay đổi
+                    var existingProduct = await _context.SANPHAM.AsNoTracking().FirstOrDefaultAsync(p => p.IdSanPham == id);
+                    if (existingProduct == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Xử lý upload hình ảnh mới nếu có
+                    if (hinhAnh != null && hinhAnh.Length > 0)
+                    {
+                        // Tạo thư mục nếu chưa tồn tại
+                        string uploadFolder = Path.Combine(_hostingEnvironment.WebRootPath, "images", "product");
+                        if (!Directory.Exists(uploadFolder))
+                        {
+                            Directory.CreateDirectory(uploadFolder);
+                        }
+
+                        // Xóa file ảnh cũ nếu có
+                        if (!string.IsNullOrEmpty(existingProduct.hinhAnh))
+                        {
+                            string oldFileName = Path.GetFileName(existingProduct.hinhAnh);
+                            string oldFilePath = Path.Combine(uploadFolder, oldFileName);
+                            if (System.IO.File.Exists(oldFilePath))
+                            {
+                                System.IO.File.Delete(oldFilePath);
+                            }
+                        }
+
+                        // Tạo tên file duy nhất
+                        string uniqueFileName = Path.GetFileName(hinhAnh.FileName);
+                        string filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                        // Lưu file
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await hinhAnh.CopyToAsync(fileStream);
+                        }
+
+                        // Cập nhật đường dẫn tương đối vào model
+                        sANPHAM.hinhAnh = $"/images/product/{uniqueFileName}";
+                    }
+                    else
+                    {
+                        // Giữ nguyên đường dẫn hình ảnh cũ nếu không có upload hình mới
+                        sANPHAM.hinhAnh = existingProduct.hinhAnh;
+                    }
+
+                    // Cập nhật sản phẩm vào database
                     _context.Update(sANPHAM);
                     await _context.SaveChangesAsync();
+
+                    TempData["Success"] = "Cập nhật sản phẩm thành công!";
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -245,8 +296,14 @@ namespace WebBookStoreManage.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    TempData["Error"] = $"Lỗi khi cập nhật sản phẩm: {ex.Message}";
+                    ModelState.AddModelError("", "Có lỗi xảy ra khi cập nhật sản phẩm. Vui lòng thử lại.");
+                }
             }
+
+            // Nếu ModelState không hợp lệ hoặc có lỗi, trả về view với dữ liệu hiện tại
             ViewData["IdDanhMucCT"] = new SelectList(_context.DANHMUCCHITIET, "IdDanhMucCT", "TenDanhMucCT", sANPHAM.IdDanhMucCT);
             return View(sANPHAM);
         }
@@ -276,9 +333,42 @@ namespace WebBookStoreManage.Controllers
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
             var sANPHAM = await _context.SANPHAM.FindAsync(id);
-            _context.SANPHAM.Remove(sANPHAM);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            if (sANPHAM == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                // Xóa file ảnh nếu có
+                if (!string.IsNullOrEmpty(sANPHAM.hinhAnh))
+                {
+                    // Lấy tên file từ đường dẫn
+                    string fileName = Path.GetFileName(sANPHAM.hinhAnh);
+
+                    // Tạo đường dẫn đầy đủ đến file ảnh
+                    string imagePath = Path.Combine(_hostingEnvironment.WebRootPath, "images", "product", fileName);
+
+                    // Kiểm tra file có tồn tại không
+                    if (System.IO.File.Exists(imagePath))
+                    {
+                        // Xóa file
+                        System.IO.File.Delete(imagePath);
+                    }
+                }
+
+                // Xóa sản phẩm khỏi database
+                _context.SANPHAM.Remove(sANPHAM);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = "Xóa sản phẩm thành công!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Có lỗi xảy ra khi xóa sản phẩm: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         private bool SANPHAMExists(string id)

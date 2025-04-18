@@ -1,72 +1,251 @@
-﻿@model IEnumerable<WebBookStoreManage.Models.NHANVIEN>
-
+﻿@model PaginatedList<WebBookStoreManage.Models.NHANVIEN>
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Quản Lý Nhân Viên";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Index</h1>
+<div class="container-fluid">
+    <!-- Tiêu đề trang và nút thêm mới -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Quản Lý Nhân Viên</h1>
+            <p class="mb-0 text-muted">Quản lý danh sách nhân viên trong hệ thống</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-user-plus me-2"></i>Thêm Nhân Viên Mới
+        </a>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table table-responsive w-full rounded">
-    <thead>
-        <tr>
-            <th class="border px-4 py-2">
-                @Html.DisplayNameFor(model => model.TenNhanVien)
-            </th>
-            <th class="border px-4 py-2">
-                @Html.DisplayNameFor(model => model.Email)
-            </th>
-            <th class="border px-4 py-2">
-                @Html.DisplayNameFor(model => model.DienThoai)
-            </th>
-            <th class="border px-4 py-2">
-                @Html.DisplayNameFor(model => model.NgayVaoLam)
-            </th>
-            <th class="border px-4 py-2">
-                @Html.DisplayNameFor(model => model.LoaiNhanVien)
-            </th>
-            <th class="border px-4 py-2">
-                Tài Khoản
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td class="border px-4 py-2">
-                    @Html.DisplayFor(modelItem => item.TenNhanVien)
-                </td>
-                <td class="border px-4 py-2">
-                    @Html.DisplayFor(modelItem => item.Email)
-                </td>
-                <td class="border px-4 py-2">
-                    @Html.DisplayFor(modelItem => item.DienThoai)
-                </td>
-                <td class="border px-4 py-2">
-                    @Html.DisplayFor(modelItem => item.NgayVaoLam)
-                </td>
-                <td class="border px-4 py-2">
-                    @Html.DisplayFor(modelItem => item.LoaiNhanVien.TenLoaiNhanVien)
-                </td>
-                <td class="border px-4 py-2">
-                    @Html.DisplayFor(modelItem => item.TaiKhoan.TenDangNhap)
-                </td>
-                <td class="border px-4 py-2">
-                    <a asp-action="Details" asp-route-id="@item.IdNhanVien" class="bg-teal-300 cursor-pointer rounded p-1 mx-1 text-white" title="Details">
-                        <i class="fas fa-eye"></i>
-                    </a>
-                    <a asp-action="Edit" asp-route-id="@item.IdNhanVien" class="bg-teal-300 cursor-pointer rounded p-1 mx-1 text-white" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </a>
-                    <a asp-action="Delete" asp-route-id="@item.IdNhanVien" class="bg-teal-300 cursor-pointer rounded p-1 mx-1 text-red-500" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    <!-- Hiển thị thông báo thành công/lỗi nếu có -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Card chứa bảng danh sách nhân viên -->
+    <div class="card shadow">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Danh Sách Nhân Viên</h6>
+
+            <!-- Form tìm kiếm -->
+            <div>
+                <form asp-action="Index" method="get" class="d-flex">
+                    <div class="input-group">
+                        <input type="text" name="searchString" value="@ViewData["CurrentFilter"]"
+                               class="form-control" placeholder="Tìm kiếm nhân viên..." aria-label="Search">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        @if (!string.IsNullOrEmpty((string)ViewData["CurrentFilter"]))
+                        {
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        }
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped" width="100%" cellspacing="0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="text-nowrap">
+                                <i class="fas fa-id-card me-1 text-primary"></i>
+                                Họ và tên
+                            </th>
+                            <th class="text-nowrap">
+                                <i class="fas fa-envelope me-1 text-primary"></i>
+                                Email
+                            </th>
+                            <th class="text-nowrap">
+                                <i class="fas fa-phone me-1 text-primary"></i>
+                                Điện thoại
+                            </th>
+                            <th class="text-nowrap">
+                                <i class="fas fa-calendar-alt me-1 text-primary"></i>
+                                Ngày vào làm
+                            </th>
+                            <th class="text-nowrap">
+                                <i class="fas fa-user-tag me-1 text-primary"></i>
+                                Chức vụ
+                            </th>
+                            <th class="text-nowrap">
+                                <i class="fas fa-user-lock me-1 text-primary"></i>
+                                Tài khoản
+                            </th>
+                            <th class="text-center text-nowrap">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="align-middle fw-bold">
+                                    @Html.DisplayFor(modelItem => item.TenNhanVien)
+                                </td>
+                                <td class="align-middle">
+                                    <a href="mailto:@item.Email" class="text-decoration-none">
+                                        @Html.DisplayFor(modelItem => item.Email)
+                                    </a>
+                                </td>
+                                <td class="align-middle">
+                                    <a href="tel:@item.DienThoai" class="text-decoration-none">
+                                        @Html.DisplayFor(modelItem => item.DienThoai)
+                                    </a>
+                                </td>
+                                <td class="align-middle">
+                                    @item.NgayVaoLam.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="align-middle">
+                                    <span class="badge bg-info text-white">
+                                        @Html.DisplayFor(modelItem => item.LoaiNhanVien.TenLoaiNhanVien)
+                                    </span>
+                                </td>
+                                <td class="align-middle">
+                                    <span class="badge bg-secondary text-white">
+                                        @Html.DisplayFor(modelItem => item.TaiKhoan.TenDangNhap)
+                                    </span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@item.IdNhanVien"
+                                           class="btn btn-sm btn-outline-info" title="Chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.IdNhanVien"
+                                           class="btn btn-sm btn-outline-primary" title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.IdNhanVien"
+                                           class="btn btn-sm btn-outline-danger" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Hiển thị khi không có dữ liệu -->
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <img src="/images/no-data.png" alt="Không có dữ liệu" style="max-width: 150px; opacity: 0.5;" class="mb-3">
+                    <h5 class="text-muted">Không tìm thấy nhân viên nào</h5>
+                    @if (!string.IsNullOrEmpty((string)ViewData["CurrentFilter"]))
+                    {
+                        <p class="mb-0">
+                            Không tìm thấy kết quả cho "<strong>@ViewData["CurrentFilter"]</strong>".
+                            <a asp-action="Index" class="text-primary">Xóa tìm kiếm</a>
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="mb-0">Hãy tạo nhân viên mới bằng cách click vào nút "Thêm Nhân Viên Mới"</p>
+                    }
+                </div>
+            }
+
+            <!-- Phân trang -->
+            @if (Model.Any())
+            {
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="text-muted">
+                        Hiển thị <strong>@Model.Count</strong> trên tổng số <strong>@Model.TotalCount</strong> nhân viên
+                    </div>
+
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            @{
+                                var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+                                var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+                            }
+
+                            <li class="page-item @prevDisabled">
+                                <a asp-action="Index"
+                                   asp-route-pageNumber="1"
+                                   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+                                   class="page-link">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item @prevDisabled">
+                                <a asp-action="Index"
+                                   asp-route-pageNumber="@(Model.PageIndex - 1)"
+                                   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+                                   class="page-link">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+
+                            @{
+                                int startPage = Math.Max(1, Model.PageIndex - 2);
+                                int endPage = Math.Min(Model.TotalPages, startPage + 4);
+
+                                if (endPage - startPage < 4 && startPage > 1)
+                                {
+                                    startPage = Math.Max(1, endPage - 4);
+                                }
+
+                                for (int i = startPage; i <= endPage; i++)
+                                {
+                                    var active = i == Model.PageIndex ? "active" : "";
+                                    <li class="page-item @active">
+                                        <a asp-action="Index"
+                                           asp-route-pageNumber="@i"
+                                           asp-route-currentFilter="@ViewData["CurrentFilter"]"
+                                           class="page-link">@i</a>
+                                    </li>
+                                }
+                            }
+
+                            <li class="page-item @nextDisabled">
+                                <a asp-action="Index"
+                                   asp-route-pageNumber="@(Model.PageIndex + 1)"
+                                   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+                                   class="page-link">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item @nextDisabled">
+                                <a asp-action="Index"
+                                   asp-route-pageNumber="@Model.TotalPages"
+                                   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+                                   class="page-link">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Auto-hide thông báo sau 5 giây
+            setTimeout(function () {
+                $('.alert').alert('close');
+            }, 5000);
+        });
+    </script>
+}

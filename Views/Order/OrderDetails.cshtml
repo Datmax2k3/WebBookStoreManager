@@ -1,7 +1,29 @@
 ﻿@model WebBookStoreManage.ViewModels.OrderViewModel
-
 @{
     ViewData["Title"] = "Chi tiết đơn hàng";
+    var statusClass = Model.DONHANG?.TrangThaiDonHang.ToString() switch
+    {
+        "dangXuLy" => "bg-warning text-dark",
+        "daDuyet" => "bg-info text-white",
+        "dangVanChuyen" => "bg-primary text-white",
+        "hoanThanh" => "bg-success text-white",
+        "daHuy" => "bg-danger text-white",
+        _ => "bg-secondary text-white"
+    };
+    var statusText = Model.DONHANG?.TrangThaiDonHang.ToString() switch
+    {
+        "dangXuLy" => "Đang xử lý",
+        "daDuyet" => "Đã duyệt",
+        "dangVanChuyen" => "Đang vận chuyển",
+        "hoanThanh" => "Hoàn thành",
+        "daHuy" => "Đã hủy",
+        _ => "N/A"
+    };
+
+    var isCompleted = Model.DONHANG?.TrangThaiDonHang.ToString() == "hoanThanh";
+
+    // Lấy thông tin trạng thái đánh giá từ ViewBag nếu có
+    var ratingStatus = ViewBag.RatingStatus as Dictionary<string, bool> ?? new Dictionary<string, bool>();
 }
 
 <body class="h-screen font-sans login bg-cover">
@@ -9,83 +31,370 @@
         <div class="container container-profile">
             <!-- Sidebar bên trái -->
             @Html.Partial("Navbar/_NavProfile")
-            
+
             <!-- Nội dung chính -->
             <div class="main-content">
-                <div class="container mt-4">
-                    <h2 class="mb-4">Chi tiết đơn hàng</h2>
+                <div class="container-fluid my-4">
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <h2 class="mb-0">Chi tiết đơn hàng #@Model.PHIEUDAT.IdPhieuDat</h2>
+                            <div class="d-flex align-items-center mt-2">
+                                <span class="badge @statusClass fs-6 me-2">@statusText</span>
+                                <span class="text-muted">Ngày đặt: @Model.PHIEUDAT.NgayTaoPhieu.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="btn-group">
+                                <a asp-action="OrderManagement" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     @if (TempData["Message"] != null)
                     {
-                        <div class="alert alert-success">@TempData["Message"]</div>
+                        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                            @TempData["Message"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
                     }
 
                     @if (TempData["Error"] != null)
                     {
-                        <div class="alert alert-danger">@TempData["Error"]</div>
+                        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
                     }
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            Thông tin đơn hàng
-                        </div>
-                        <div class="card-body">
-                            <p><strong>Ngày đặt:</strong> @Model.PHIEUDAT.NgayTaoPhieu.ToString("dd/MM/yyyy HH:mm")</p>
-                            <p><strong>Tổng tiền:</strong> @Model.PHIEUDAT.TongTien.ToString("N0")đ</p>
-                            <p><strong>Trạng thái:</strong> @Model.TrangThai</p>
-                            <p><strong>Ghi chú:</strong> @Model.PHIEUDAT.GhiChu</p>
-                            <p><strong>Ngày thanh toán:</strong> @Model.DONHANG.NgayThanhToan</p>
-                            <!-- Kiểm tra nếu trạng thái là 'dangXuLy' thì hiển thị nút Hủy đơn -->
-                            @if (Model.DONHANG != null && Model.DONHANG.TrangThaiDonHang == WebBookStoreManage.Models.TrangThaiDonHang.dangXuLy)
-                            {
-                                <form asp-action="CancelOrder" asp-route-id="@Model.PHIEUDAT.IdPhieuDat" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');">
-                                    <button type="submit" class="btn btn-danger">Hủy đơn hàng</button>
-                                </form>
-                            }
-                        </div>
-                    </div>
 
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            Thông tin giao hàng
-                        </div>
-                        <div class="card-body">
-                            <p><strong>Họ tên:</strong> @Model.HoTen</p>
-                            <p><strong>Địa chỉ:</strong> @Model.DiaChi</p>
-                            <p><strong>Số điện thoại:</strong> @Model.SoDienThoai</p>
-                        </div>
-                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <!-- Thông tin sản phẩm -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">Thông tin sản phẩm</h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Sản phẩm</th>
+                                                    <th class="text-center">Đơn giá</th>
+                                                    <th class="text-center">Số lượng</th>
+                                                    <th class="text-end">Thành tiền</th>
+                                                    @if (isCompleted)
+                                                    {
+                                                        <th class="text-center">Đánh giá</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model.PHIEUDAT.ChiTietPhieuDats)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex align-items-center">
+                                                                <img src="@Url.Content("~/images/product/" + item.SanPham.hinhAnh)" alt="@item.SanPham.TenSanPham"
+                                                                     class="me-2" style="width: 50px; height: 50px; object-fit: cover;">
+                                                                <div>
+                                                                    <div>@item.SanPham.TenSanPham</div>
+                                                                    <small class="text-muted">Mã: @item.SanPham.IdSanPham</small>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-center">@((item.SanPham.GiaBan ?? 0).ToString("N0"))đ</td>
+                                                        <td class="text-center">@item.SoLuong</td>
+                                                        <td class="text-end">@item.ThanhTien.ToString("N0")đ</td>
+                                                        @if (isCompleted)
+                                                        {
+                                                            <td class="text-center">
+                                                                @if (ratingStatus.ContainsKey(item.SanPham.IdSanPham) && ratingStatus[item.SanPham.IdSanPham])
+                                                                {
+                                                                    <span class="badge bg-success">
+                                                                        <i class="fas fa-check-circle me-1"></i> Đã đánh giá
+                                                                    </span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                                                            onclick="showRatingModal('@item.SanPham.IdSanPham', '@item.SanPham.TenSanPham')">
+                                                                        <i class="fas fa-star me-1"></i> Đánh giá
+                                                                    </button>
+                                                                }
+                                                            </td>
+                                                        }
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                            <tfoot class="table-light">
+                                                <tr>
+                                                    <td colspan="3" class="text-end"><strong>Tổng tiền:</strong></td>
+                                                    <td class="text-end"><strong>@Model.PHIEUDAT.TongTien.ToString("N0")đ</strong></td>
+                                                    @if (isCompleted)
+                                                    {
+                                                        <td></td>
+                                                    }
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            Chi tiết đơn hàng
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Sản phẩm</th>
-                                        <th>Số lượng</th>
-                                        <th>Đơn giá</th>
-                                        <th>Thành tiền</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var ct in Model.ChiTietPhieuDats)
+                            <!-- Ghi chú đơn hàng -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Ghi chú đơn hàng</h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (string.IsNullOrEmpty(Model.PHIEUDAT.GhiChu))
                                     {
-                                        <tr>
-                                            <td>@ct.SanPham.TenSanPham</td>
-                                            <td>@ct.SoLuong</td>
-                                            <td>@(ct.SanPham.GiaBan?.ToString("N0") ?? "0")đ</td>
-                                            <td>@ct.ThanhTien.ToString("N0")đ</td>
-                                        </tr>
+                                        <p class="text-muted">Không có ghi chú</p>
                                     }
-                                </tbody>
-                            </table>
+                                    else
+                                    {
+                                        <p>@Model.PHIEUDAT.GhiChu</p>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Lịch sử đơn hàng -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Lịch sử đơn hàng</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="timeline">
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker bg-primary"></div>
+                                            <div class="timeline-content">
+                                                <h5>Đơn hàng được tạo</h5>
+                                                <p class="text-muted">@Model.PHIEUDAT.NgayTaoPhieu.ToString("dd/MM/yyyy HH:mm")</p>
+                                            </div>
+                                        </div>
+                                        @if (Model.DONHANG != null)
+                                        {
+                                            @if (Model.DONHANG.TrangThaiDonHang.ToString() == "daDuyet" ||
+                                           Model.DONHANG.TrangThaiDonHang.ToString() == "dangVanChuyen" ||
+                                           Model.DONHANG.TrangThaiDonHang.ToString() == "hoanThanh")
+                                            {
+                                                <div class="timeline-item">
+                                                    <div class="timeline-marker bg-info"></div>
+                                                    <div class="timeline-content">
+                                                        <h5>Đơn hàng đã được duyệt</h5>
+                                                        <p class="text-muted">Đơn hàng đã được nhân viên xác nhận</p>
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (Model.DONHANG.TrangThaiDonHang.ToString() == "dangVanChuyen" ||
+                                           Model.DONHANG.TrangThaiDonHang.ToString() == "hoanThanh")
+                                            {
+                                                <div class="timeline-item">
+                                                    <div class="timeline-marker bg-primary"></div>
+                                                    <div class="timeline-content">
+                                                        <h5>Đơn hàng đang vận chuyển</h5>
+                                                        <p class="text-muted">
+                                                            @if (Model.DONHANG.NgayGiaoHang.HasValue)
+                                                            {
+                                                                @Model.DONHANG.NgayGiaoHang.Value.ToString("dd/MM/yyyy HH:mm")
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (Model.DONHANG.TrangThaiDonHang.ToString() == "hoanThanh")
+                                            {
+                                                <div class="timeline-item">
+                                                    <div class="timeline-marker bg-success"></div>
+                                                    <div class="timeline-content">
+                                                        <h5>Đơn hàng hoàn thành</h5>
+                                                        <p class="text-muted">
+                                                            @if (Model.DONHANG.NgayThanhToan.HasValue)
+                                                            {
+                                                                @Model.DONHANG.NgayThanhToan.Value.ToString("dd/MM/yyyy HH:mm")
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (Model.DONHANG.TrangThaiDonHang.ToString() == "daHuy")
+                                            {
+                                                <div class="timeline-item">
+                                                    <div class="timeline-marker bg-danger"></div>
+                                                    <div class="timeline-content">
+                                                        <h5>Đơn hàng đã bị hủy</h5>
+                                                        @if (!string.IsNullOrEmpty(Model.PHIEUDAT.GhiChu) && Model.PHIEUDAT.GhiChu.Contains("Lý do hủy đơn:"))
+                                                        {
+                                                            <p class="text-muted">@Model.PHIEUDAT.GhiChu</p>
+                                                        }
+                                                        else
+                                                        {
+                                                            <p class="text-muted">Đơn hàng đã bị hủy</p>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <!-- Thông tin người nhận hàng -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">Thông tin người nhận</h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model.PHIEUDAT.DiaChiGiaoHang != null)
+                                    {
+                                        <p><strong>Họ và tên:</strong> @Model.PHIEUDAT.DiaChiGiaoHang.HoVaTen</p>
+                                        <p><strong>Số điện thoại:</strong> @Model.PHIEUDAT.DiaChiGiaoHang.SdtGiaoHang</p>
+                                        <p><strong>Địa chỉ:</strong> @Model.PHIEUDAT.DiaChiGiaoHang.DiaChiGiaoHang</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">Đơn hàng mua trực tiếp tại cửa hàng</p>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Thông tin đơn hàng -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">Thông tin thanh toán</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Tổng tiền hàng:</strong> @Model.PHIEUDAT.TongTien.ToString("N0")đ</p>
+                                    <p><strong>Ngày đặt hàng:</strong> @Model.PHIEUDAT.NgayTaoPhieu.ToString("dd/MM/yyyy HH:mm")</p>
+                                    @if (Model.DONHANG?.NgayThanhToan.HasValue == true)
+                                    {
+                                        <p><strong>Ngày thanh toán:</strong> @Model.DONHANG.NgayThanhToan.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                                    }
+                                    <p><strong>Trạng thái:</strong> <span class="badge @statusClass">@statusText</span></p>
+                                </div>
+                            </div>
+
+                            <!-- Thực hiện hành động -->
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">Tùy chọn</h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model.DONHANG != null && Model.DONHANG.TrangThaiDonHang.ToString() == "dangXuLy")
+                                    {
+                                        <form asp-action="CancelOrder" asp-controller="Order" method="post" class="mb-3" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');">
+                                            <input type="hidden" name="id" value="@Model.PHIEUDAT.IdPhieuDat" />
+                                            <button type="submit" class="btn btn-danger w-100 mb-3">
+                                                <i class="fas fa-times-circle me-2"></i> Hủy đơn hàng
+                                            </button>
+                                        </form>
+                                    }
+
+                                    <a href="#" class="btn btn-outline-secondary w-100 mt-3">
+                                        <i class="fas fa-question-circle me-2"></i> Liên hệ hỗ trợ
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                    <a asp-action="OrderManagement" class="btn btn-secondary">Quay lại danh sách đơn hàng</a>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Modal Đánh giá sản phẩm -->
+    <div class="modal fade" id="ratingModal" tabindex="-1" aria-labelledby="ratingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="ratingModalLabel">Đánh giá sản phẩm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="ratingForm" asp-action="AddRating" asp-controller="Order" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" id="IdSanPham" name="IdSanPham" />
+                        <input type="hidden" name="IdNguoiDung" value="@Model.PHIEUDAT.IdNguoiDung" />
+
+                        <div class="mb-3">
+                            <h5 id="productName" class="text-center mb-3"></h5>
+                            <div class="text-center mb-3">
+                                <img id="productImage" src="" class="img-fluid rounded" style="max-height: 150px; max-width: 100%;" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="NoiDung" class="form-label">Đánh giá của bạn</label>
+                            <textarea class="form-control" id="NoiDung" name="NoiDung" rows="4"
+                                      placeholder="Hãy chia sẻ cảm nhận của bạn về sản phẩm..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
+
+<style>
+    /* CSS cho timeline */
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+
+        .timeline:before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #ddd;
+        }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 25px;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -30px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+    }
+
+    .timeline-content {
+        padding-bottom: 10px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function printOrder(orderId) {
+            window.open('@Url.Action("PrintOrder")?id=' + orderId, '_blank');
+            return false;
+        }
+
+        function showRatingModal(productId, productName) {
+            // Thiết lập thông tin sản phẩm vào modal
+            document.getElementById('IdSanPham').value = productId;
+            document.getElementById('productName').textContent = productName;
+
+            // Hiển thị modal
+            var ratingModal = new bootstrap.Modal(document.getElementById('ratingModal'));
+            ratingModal.show();
+        }
+    </script>
+}
