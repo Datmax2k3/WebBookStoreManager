@@ -1,0 +1,38 @@
+﻿@model WebBookStoreManage.ViewModels.CartViewModel
+<a href="@Url.Action("Index", "Cart")" class="cart for-buy" id="cart-icon">
+    <i class="fas fa-clipboard"></i>
+    <span>Giỏ hàng <span id="cart-quantity">(@Model.TotalQuantity)</span></span>
+</a>
+
+
+
+<script>
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.add-to-cart');
+        if (!btn) return;
+        e.preventDefault();
+
+        var productId = btn.getAttribute('data-product-id');
+        var quantity = 1; // hoặc lấy từ input
+
+        fetch('/Cart/AddToCart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId, quantity })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Cập nhật badge số lượng
+                    document.getElementById('cart-quantity').innerText = data.totalQuantity;
+                    // Hiển thị toast nếu muốn
+                    showCartToast(`Đã thêm ${data.productName}`);
+                } else if (data.redirectTo) {
+                    window.location = data.redirectTo;
+                } else {
+                    showCartToast(data.message, 'error');
+                }
+            });
+    });
+
+</script>

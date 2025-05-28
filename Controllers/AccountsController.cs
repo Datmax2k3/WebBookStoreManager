@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using WebBookStoreManage.Data;
@@ -19,10 +21,12 @@ namespace WebBookStoreManage.Controllers
     {
         private readonly WebBookStoreManageContext _context;
         private readonly EmailService _emailSender;
-        public AccountsController(WebBookStoreManageContext context, EmailService emailSender)
+        private readonly IDataProtector _protector;
+        public AccountsController(WebBookStoreManageContext context, EmailService emailSender, IDataProtectionProvider dpProvider)
         {
             _context = context;
             _emailSender = emailSender;
+            _protector = dpProvider.CreateProtector("ResetPassword");
         }
         public IActionResult Index()
         {
@@ -40,41 +44,56 @@ namespace WebBookStoreManage.Controllers
         public async Task<IActionResult> Login(TAIKHOAN model)
         {
             if (!ModelState.IsValid)
-            {
                 return View(model);
-            }
 
+            // Eager‐load NhanVien ⇒ LoaiNhanVien và VaiTro
             var account = await _context.TAIKHOAN
+                .Include(a => a.NhanVien)
+                    .ThenInclude(nv => nv.LoaiNhanVien)
+                .Include(a => a.VaiTro)
                 .FirstOrDefaultAsync(a => a.TenDangNhap == model.TenDangNhap);
 
-            if (account == null || !new PasswordService.PasswordService().VerifyPassword(account.MatKhau, model.MatKhau))
+            if (account == null
+                || !new PasswordService.PasswordService()
+                            .VerifyPassword(account.MatKhau, model.MatKhau))
             {
                 TempData["LoginError"] = "Tài khoản hoặc mật khẩu không đúng";
                 return View(model);
             }
 
-            // Kiểm tra xem tài khoản có phải của nhân viên không
             bool isEmployee = account.NhanVien != null;
+            bool isEmployeeTransport = isEmployee
+                && account.NhanVien.LoaiNhanVien.TenLoaiNhanVien
+                      .Equals("nhân viên giao hàng", StringComparison.OrdinalIgnoreCase);
+            bool isAdmin = account.VaiTro?.TenVaiTro
+                      .Equals("admin", StringComparison.OrdinalIgnoreCase) ?? false;
 
-            // Tạo danh sách claims
             var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, account.TenDangNhap),
-                new Claim(ClaimTypes.NameIdentifier, account.IdTaiKhoan.ToString()),
-                // Thêm claim để xác định nhân viên
-                new Claim("IsEmployee", isEmployee.ToString())
-            };
+    {
+        new Claim(ClaimTypes.Name, account.TenDangNhap),
+        new Claim(ClaimTypes.NameIdentifier, account.IdTaiKhoan.ToString()),
+        new Claim("IsEmployee", isEmployee.ToString()),
+        new Claim("IsEmployeeTransport", isEmployeeTransport.ToString()),
+        new Claim("IsAdmin", isAdmin.ToString())
+    };
 
-            // Tạo claims identity
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var identity = new ClaimsIdentity(
+                claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-            // Đăng nhập người dùng: tạo cookie xác thực
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity));
+                new ClaimsPrincipal(identity));
+
+            if (isEmployeeTransport)
+                return RedirectToAction("EmployeeOrderManagement", "Order");
+            if (isAdmin)
+                return RedirectToAction("Index", "Admin");
+            if (isEmployee)
+                return RedirectToAction("EmployeeOrderManagement", "Order");
 
             return RedirectToAction("Index", "Home");
         }
+
 
         public IActionResult Logout()
         {
@@ -168,6 +187,10 @@ namespace WebBookStoreManage.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateProfile()
         {
+            bool isEmployeeTransport = ViewBag.isEmployeeTransport != null && (bool)ViewBag.isEmployeeTransport;
+            if (isEmployeeTransport)
+                return RedirectToAction("Index", "Home");
+
             if (!User.Identity.IsAuthenticated)
                 return RedirectToAction("Login");
 
@@ -370,6 +393,119 @@ namespace WebBookStoreManage.Controllers
             TempData["PasswordSuccess"] = "Đổi mật khẩu thành công";
             return RedirectToAction("EditPassword");
         }
+
+        // GET: hiển thị form nhập email
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        // POST: sau khi nhập email, sang màn xác nhận
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            // tìm user theo NGUOIDUNG.Email
+            var nguoiDung = await _context.NGUOIDUNG
+                                 .Include(u => u.TaiKhoan)
+                                 .FirstOrDefaultAsync(u => u.Email == email);
+            if (nguoiDung == null)
+            {
+                TempData["Message"] = "Email không tồn tại trong hệ thống.";
+                return View();
+            }
+
+            // Tạo mật khẩu tạm
+            var newPwd = Guid.NewGuid().ToString("n").Substring(0, 8);
+            // Build token chứa: “idTaiKhoan|newPwd|expireTicks”
+            var payload = $"{nguoiDung.IdTaiKhoan}|{newPwd}|{DateTime.UtcNow.AddHours(2).Ticks}";
+            var token = _protector.Protect(payload);
+
+            // Link xác nhận
+            var confirmUrl = Url.Action(
+                "ConfirmReset",
+                "Accounts",
+                new { token = WebUtility.UrlEncode(token) },
+                protocol: Request.Scheme);
+
+            // Gửi email
+            var body = $@"
+        Mật khẩu tạm của bạn là <b>{newPwd}</b><br/>
+        Click <a href=""{confirmUrl}"">vào đây</a> để xác nhận đổi mật khẩu.";
+            await _emailSender.SendEmailAsync(email, "Đặt lại mật khẩu", body);
+
+            TempData["Message"] = "Chúng tôi đã gửi email chứa hướng dẫn đến bạn.";
+            return View();
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> ConfirmReset(string token)
+        {
+            string payload;
+            try
+            {
+                payload = _protector.Unprotect(WebUtility.UrlDecode(token));
+            }
+            catch
+            {
+                return Content("Link không hợp lệ hoặc đã hết hạn.");
+            }
+
+            // payload = "idTaiKhoan|newPwd|expireTicks"
+            var parts = payload.Split('|');
+            if (parts.Length != 3 ||
+                !int.TryParse(parts[0], out var idTk) ||
+                !long.TryParse(parts[2], out var ticks) ||
+                DateTime.UtcNow.Ticks > ticks)
+            {
+                return Content("Link đã hết hạn hoặc không hợp lệ.");
+            }
+
+            var newPwd = parts[1];
+            // Cập nhật mật khẩu:
+            var account = await _context.TAIKHOAN.FindAsync(idTk);
+            if (account == null) return Content("Tài khoản không tồn tại.");
+
+            // Hash và lưu
+            account.MatKhau = new PasswordService.PasswordService().HashPassword(newPwd);
+            await _context.SaveChangesAsync();
+
+            // Tạo URL tới Login
+            var loginUrl = Url.Action("Login", "Accounts");
+
+            // Nội dung HTML với meta-refresh sau 2 giây
+            var html = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=""utf-8"" />
+    <title>Đổi mật khẩu thành công</title>
+    <meta http-equiv=""refresh"" content=""2;url={loginUrl}"" />
+</head>
+<body style=""font-family: Arial, sans-serif; text-align: center; padding-top: 50px;"">
+    <h2>Đổi mật khẩu thành công!</h2>
+    <p>Bạn sẽ được chuyển đến trang đăng nhập trong giây lát…</p>
+</body>
+</html>";
+
+            return Content(html, "text/html; charset=utf-8");
+        }
+
+
+        // Utility: sinh password ngẫu nhiên
+        private string GenerateRandomPassword(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var rnd = new Random();
+            return new string(Enumerable
+                .Range(0, length)
+                .Select(_ => chars[rnd.Next(chars.Length)])
+                .ToArray());
+        }
+
+
 
     }
 }

@@ -188,3 +188,35 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const qtyInput = document.querySelector('.quantity-selector input[type="number"]');
+      const minusBtn = document.querySelector('.quantity-selector .minus');
+      const plusBtn  = document.querySelector('.quantity-selector .plus');
+      const min = parseInt(qtyInput.min, 10);
+      const max = parseInt(qtyInput.max, 10);
+
+      // Khi người dùng gõ trực tiếp
+      qtyInput.addEventListener('input', function() {
+        let val = parseInt(this.value, 10);
+        if (isNaN(val) || val < min) {
+          this.value = min;
+        } else if (val > max) {
+          this.value = max;
+        }
+      });
+
+      // Nút trừ
+      minusBtn.addEventListener('click', function() {
+        let val = parseInt(qtyInput.value, 10) || min;
+        qtyInput.value = Math.max(min, val - 1);
+      });
+
+      // Nút cộng
+      plusBtn.addEventListener('click', function() {
+        let val = parseInt(qtyInput.value, 10) || min;
+        qtyInput.value = Math.min(max, val + 1);
+      });
+    });
+</script>

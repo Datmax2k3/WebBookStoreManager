@@ -133,10 +133,62 @@ namespace WebBookStoreManage.Controllers
                 cartItem.SoLuong += request.Quantity;
             }
 
-            _context.SaveChanges();
+            try
+            {
+                _context.SaveChanges();
+            }
+            catch (DbUpdateException)
+            {
+                // 1. Nếu đã Add nhưng bị duplicate key, hãy bỏ state của cartItem vừa add/detach nó
+                _context.Entry(cartItem).State = EntityState.Detached;
 
-            return Json(new { success = true });
+                // 2. Load lại bản ghi thật sự từ CSDL
+                var existing = _context.GIOHANG
+                    .Single(g => g.IdNguoiDung == nguoiDung.IdNguoiDung
+                              && g.IdSanPham == request.ProductId);
+
+                _context.SaveChanges();
+            }
+
+            // Lấy tổng số lượng sản phẩm trong giỏ hàng
+            var totalQuantity = _context.GIOHANG
+                .Where(g => g.IdNguoiDung == nguoiDung.IdNguoiDung)
+                .Sum(g => g.SoLuong);
+
+            // Lấy tên sản phẩm để hiển thị thông báo
+            var tenSanPham = sanPham.TenSanPham;
+
+            return Json(new
+            {
+                success = true,
+                totalQuantity = totalQuantity,
+                productName = tenSanPham
+            });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSummary()
+        {
+            var model = new CartViewModel { CartItems = new List<GIOHANG>(), TotalQuantity = 0, TotalCost = 0 };
+            var user = HttpContext.User;
+            if (user.Identity.IsAuthenticated &&
+                int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out int idTaiKhoan))
+            {
+                var nguoiDung = await _context.NGUOIDUNG.FirstOrDefaultAsync(n => n.IdTaiKhoan == idTaiKhoan);
+                if (nguoiDung != null)
+                {
+                    var items = await _context.GIOHANG
+                        .Where(g => g.IdNguoiDung == nguoiDung.IdNguoiDung)
+                        .ToListAsync();
+                    model.CartItems = items;
+                    model.TotalQuantity = items.Sum(g => g.SoLuong);
+                    model.TotalCost = items.Sum(g => (g.SanPham.GiaBan ?? 0) * g.SoLuong);
+                }
+            }
+            // Trả về partial view _CartSummary.cshtml
+            return PartialView("_CartSummary", model);
+        }
+
 
         // Dùng class request để map JSON
         public class AddToCartRequest

@@ -136,56 +136,87 @@ namespace WebBookStoreManage.Controllers
         [HttpPost]
         public async Task<IActionResult> PlaceOrder(PaymentViewModel model)
         {
-            // Kiểm tra ModelState
+            // 1. Kiểm tra ModelState cơ bản
             if (!ModelState.IsValid)
             {
                 return View("Payment", model);
             }
 
-            // Lấy thông tin người dùng từ Claims
+            // 2. Lấy thông tin người dùng
             var idTaiKhoanStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(idTaiKhoanStr))
-            {
                 return RedirectToAction("Login", "Accounts");
-            }
             int idTaiKhoan = int.Parse(idTaiKhoanStr);
             var nguoiDung = await _context.NGUOIDUNG.FirstOrDefaultAsync(n => n.IdTaiKhoan == idTaiKhoan);
             if (nguoiDung == null)
-            {
                 return RedirectToAction("Index", "Home");
-            }
 
-            // Tải lại giỏ hàng từ CSDL
+            // 3. Tải lại giỏ hàng từ CSDL
             var cartItems = await _context.GIOHANG
                 .Include(g => g.SanPham)
                 .Where(g => g.IdNguoiDung == nguoiDung.IdNguoiDung)
                 .ToListAsync();
 
-            // Tính lại Subtotal từ giỏ hàng
+            // 4. Kiểm tra tồn kho
+            var insufficient = cartItems
+                .Where(ci => ci.SoLuong > (ci.SanPham.SoLuongCon))
+                .Select(ci => new
+                {
+                    Name = ci.SanPham.TenSanPham,
+                    Requested = ci.SoLuong,
+                    Available = ci.SanPham.SoLuongCon
+                })
+                .ToList();
+
+            if (insufficient.Any())
+            {
+                // Báo lỗi cho mỗi sp thiếu
+                foreach (var x in insufficient)
+                {
+                    ModelState.AddModelError(string.Empty,
+                        $"Sản phẩm '{x.Name}' chỉ còn {x.Available} nhưng bạn đặt {x.Requested}.");
+                }
+
+                // Reload lại các giá trị cần cho view
+                model.CartItems = cartItems;
+                model.Subtotal = cartItems.Sum(item => item.SoLuong * (item.SanPham.GiaBan ?? 0));
+
+                // Giữ nguyên lựa chọn phương thức vận chuyển/ thanh toán
+                model.ShippingFee = (model.ShippingMethod == "standard") ? 25000 : 50000;
+                model.Total = model.Subtotal + model.ShippingFee;
+
+                if (model.DeliveryAddress == null || model.DeliveryAddress.IdDiaChi == 0)
+                {
+                    if (int.TryParse(Request.Form["DeliveryAddress.IdDiaChi"], out int idDiaChi))
+                    {
+                        model.DeliveryAddress = await _context.DIACHIGIAOHANG
+                            .FirstOrDefaultAsync(d => d.IdDiaChi == idDiaChi);
+                    }
+                }
+                model.Shoppers = model.Shoppers ?? nguoiDung;
+
+                // Trả về lại view Payment với các ModelState lỗi
+                return View("Payment", model);
+            }
+
+            // 5. Nếu đủ tồn kho, tiếp tục như cũ
             decimal subtotal = cartItems.Sum(item => item.SoLuong * (item.SanPham.GiaBan ?? 0));
             model.Subtotal = subtotal;
-
-            // Xác định phí vận chuyển dựa trên phương thức được chọn
             decimal shippingFee = (model.ShippingMethod == "standard") ? 25000 : 50000;
             model.ShippingFee = shippingFee;
             model.Total = model.Subtotal + shippingFee;
 
-            // Nếu DeliveryAddress chưa có, tải lại dựa trên Id
             if (model.DeliveryAddress == null || model.DeliveryAddress.IdDiaChi == 0)
             {
                 if (int.TryParse(Request.Form["DeliveryAddress.IdDiaChi"], out int idDiaChi))
                 {
-                    model.DeliveryAddress = await _context.DIACHIGIAOHANG.FirstOrDefaultAsync(d => d.IdDiaChi == idDiaChi);
+                    model.DeliveryAddress = await _context.DIACHIGIAOHANG
+                        .FirstOrDefaultAsync(d => d.IdDiaChi == idDiaChi);
                 }
             }
+            model.Shoppers = model.Shoppers ?? nguoiDung;
 
-            // Nếu Shoppers chưa có, gán lại bằng thông tin người dùng
-            if (model.Shoppers == null)
-            {
-                model.Shoppers = nguoiDung;
-            }
-
-            // Tạo PHIEUDAT (đơn hàng)
+            // Tạo PHIEUDAT
             var order = new PHIEUDAT
             {
                 NgayTaoPhieu = DateTime.Now,
@@ -194,24 +225,22 @@ namespace WebBookStoreManage.Controllers
                 IdNguoiDung = model.Shoppers.IdNguoiDung,
                 TongTien = model.Total,
             };
-
             _context.PHIEUDAT.Add(order);
             await _context.SaveChangesAsync();
 
-            // Tạo chi tiết đơn hàng cho từng mặt hàng trong giỏ hàng
+            // Tạo CHITIETPHIEUDAT và cập nhật tồn kho, đã bán
             foreach (var item in cartItems)
             {
-                var orderDetail = new CHITIETPHIEUDAT
+                _context.CHITIETPHIEUDAT.Add(new CHITIETPHIEUDAT
                 {
                     SoLuong = item.SoLuong,
                     IdPhieuDat = order.IdPhieuDat,
                     IdSanPham = item.SanPham.IdSanPham,
                     ThanhTien = item.SoLuong * (item.SanPham.GiaBan ?? 0)
-                };
-                _context.CHITIETPHIEUDAT.Add(orderDetail);
+                });
 
-                // Cập nhật số lượng tồn và số lượng đã bán của sản phẩm
-                var product = await _context.SANPHAM.FirstOrDefaultAsync(p => p.IdSanPham == item.SanPham.IdSanPham);
+                var product = await _context.SANPHAM
+                    .FirstOrDefaultAsync(p => p.IdSanPham == item.SanPham.IdSanPham);
                 if (product != null)
                 {
                     product.SoLuongCon -= item.SoLuong;
@@ -229,34 +258,30 @@ namespace WebBookStoreManage.Controllers
             _context.DONHANG.Add(donHang);
             await _context.SaveChangesAsync();
 
-            // Xóa các mục trong giỏ hàng của người dùng sau khi đặt hàng thành công
+            // Xóa giỏ hàng cũ
             _context.GIOHANG.RemoveRange(cartItems);
             await _context.SaveChangesAsync();
 
-            // Lưu ID đơn hàng vào TempData để sử dụng sau khi thanh toán MoMo
             TempData["DonHangId"] = donHang.IdDonHang;
 
-            // Xử lý phương thức thanh toán
+            // 6. Thanh toán MoMo hay COD
             if (model.PaymentMethod == "momo")
             {
-                // Chuyển hướng đến phương thức thanh toán MoMo
                 var orderInfo = new OrderInfoModel
                 {
                     FullName = model.Shoppers.TenNguoiDung,
                     Amount = (long)model.Total,
                     OrderInfo = $"Thanh toán đơn hàng #{donHang.IdDonHang} tại Thành Tâm Book Store"
                 };
-
                 var momoResponse = await _momoService.CreatePaymentAsync(orderInfo);
-
                 return Redirect(momoResponse.PayUrl);
             }
             else
             {
-                // Đối với COD, chuyển đến trang xác nhận đặt hàng thành công
                 return RedirectToAction("PaymentSuccess", new { orderId = donHang.IdDonHang });
             }
         }
+
 
         public async Task<IActionResult> MomoReturn(string partnerCode, string orderId, string requestId,
                                         string amount, string orderInfo, string orderType,
@@ -479,9 +504,10 @@ namespace WebBookStoreManage.Controllers
             // Kiểm tra quyền nhân viên
             bool isEmployee = ViewBag.IsEmployee != null && (bool)ViewBag.IsEmployee;
             bool isAdmin = ViewBag.IsAdmin != null && (bool)ViewBag.IsAdmin;
+            bool isEmployeeTransport = ViewBag.isEmployeeTransport != null && (bool)ViewBag.isEmployeeTransport;
             if (!isEmployee && !isAdmin)
             {
-                return RedirectToAction("AccessDenied", "Accounts");
+                return RedirectToAction("Index", "Accounts");
             }
 
             // Xây dựng query cơ bản
@@ -490,6 +516,13 @@ namespace WebBookStoreManage.Controllers
                 .Include(o => o.NguoiDung)
                 .Include(o => o.DonHangs)
                 .AsQueryable();
+
+            // Nếu là nhân viên vận chuyển, loại bỏ đơn đang xử lý
+            if (isEmployeeTransport)
+            {
+                query = query.Where(o =>!o.DonHangs.Any(d => d.TrangThaiDonHang == TrangThaiDonHang.dangXuLy || d.TrangThaiDonHang == TrangThaiDonHang.daHuy)
+                );
+            }
 
             // Lọc theo ngày
             if (startDate.HasValue)
@@ -600,6 +633,37 @@ namespace WebBookStoreManage.Controllers
 
             return View(orderViewModel);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteOrder(int id)
+        {
+            // Tìm phiếu đặt cùng các ràng buộc
+            var order = await _context.PHIEUDAT
+                .Include(o => o.ChiTietPhieuDats)
+                .Include(o => o.DonHangs)
+                .FirstOrDefaultAsync(o => o.IdPhieuDat == id);
+
+            if (order == null)
+                return NotFound();
+
+            // Xóa chi tiết đơn hàng 
+            if (order.ChiTietPhieuDats != null)
+                _context.CHITIETPHIEUDAT.RemoveRange(order.ChiTietPhieuDats);
+
+            // Xóa bản ghi DONHANG
+            if (order.DonHangs != null)
+                _context.DONHANG.RemoveRange(order.DonHangs);
+
+            // Xóa PHIEUDAT
+            _context.PHIEUDAT.Remove(order);
+
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = "Xóa đơn hàng thành công.";
+            return RedirectToAction("EmployeeOrderManagement"); // Hoặc action danh sách bạn muốn
+        }
+
 
         // Phương thức kiểm tra đánh giá đã tồn tại không
         private async Task<Dictionary<string, bool>> CheckExistingRatings(int idNguoiDung, List<string> productIds)

@@ -12,6 +12,7 @@
     string cartUrl = isLoggedIn ? "/Cart/" : "/Accounts/Login";
     bool isEmployee = ViewBag.IsEmployee != null && (bool)ViewBag.IsEmployee;
     bool isAdmin = ViewBag.IsAdmin != null && (bool)ViewBag.IsAdmin;
+    bool isEmployeeTransport = ViewBag.isEmployeeTransport != null && (bool)ViewBag.isEmployeeTransport;
 }
 
 @if (!isLoggedIn)
@@ -23,62 +24,70 @@
 }
 else
 {
-<span class="user-account for-buy">
-    <a href="@Url.Action("Profile", "Accounts")" class="dropdown dropdown-toggle" data-bs-toggle="dropdown">
-        <i class="fas fa-user"></i>
-        <span>@displayName</span>
-    </a>
-    @if (isAdmin)
-    {
-        <!-- Thêm nút quản lý nhân viên nếu là admin -->
-        <ul class="dropdown-menu">
-            <!-- Với nhân viên, bạn có thể chỉ cho phép đổi mật khẩu và quản lý các mục khác -->
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("RevenueReport", "Admin")">Thống kê doanh thu</a></li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EditPassword", "Accounts")">Đổi mật khẩu</a></li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EmployeeOrderManagement", "Order")">Quản lý đơn hàng</a></li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Index", "SanPhams")">Quản lý sản phẩm</a></li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EmployeeManagement", "Accounts")">Quản lý nhân viên</a></li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Logout", "Accounts")">Đăng xuất</a></li>
-        </ul>
-    }else if (!isEmployee)
-    {
-        <!-- Menu cho khách hàng -->
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Profile", "Accounts")">Thông tin tài khoản</a></li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EditPassword", "Accounts")">Đổi mật khẩu</a></li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("OrderManagement", "Order")">Thông tin đơn hàng</a></li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Logout", "Accounts")">Đăng xuất</a></li>
-        </ul>
-    }else
-    {
-        <!-- Menu cho nhân viên -->
-        <ul class="dropdown-menu">
-            <!-- Với nhân viên, bạn có thể chỉ cho phép đổi mật khẩu và quản lý các mục khác -->
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Create", "DirectOrder")">Tạo đơn hàng</a></li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EditPassword", "Accounts")">Đổi mật khẩu</a></li>
-            <li>
-                <a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EmployeeOrderManagement", "Order")">
-                    Quản lý đơn hàng
-                    @if (ViewBag.ProcessingOrderCount > 0)
-                    {
-            <span class="badge bg-danger rounded-pill">@ViewBag.ProcessingOrderCount</span>}
-                </a>
-            </li>
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("ProductManagement", "Product")">Quản lý sản phẩm</a></li>
-
-            <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Logout", "Accounts")">Đăng xuất</a></li>
-        </ul>
-    }
-</span>
-
-    <!-- Nút giỏ hàng với tổng tiền -->
-    {
-        var cartModel = ViewBag.CartSummary as WebBookStoreManage.ViewModels.CartViewModel;
-        string cartText = cartModel != null ? cartModel.TotalCost.ToString("N0") : "0";
-        <a href="@Url.Action("Index", "Cart")" class="cart for-buy">
-            <i class="fas fa-clipboard"></i>
-            <span>Cart: @cartText đ</span>
+    <span class="user-account for-buy">
+        <a href="@Url.Action("Profile", "Accounts")" class="dropdown dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="fas fa-user"></i>
+            <span>@displayName</span>
         </a>
-    }
+        @if (isAdmin)
+        {
+            <!-- Thêm nút quản lý nhân viên nếu là admin -->
+            <ul class="dropdown-menu">
+                <!-- Với nhân viên, bạn có thể chỉ cho phép đổi mật khẩu và quản lý các mục khác -->
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("RevenueReport", "Admin")">Thống kê doanh thu</a></li>
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EditPassword", "Accounts")">Đổi mật khẩu</a></li>
+                <li>
+                    <a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EmployeeOrderManagement", "Order")">
+                        Quản lý đơn hàng
+                        @if (ViewBag.ProcessingOrderCount > 0)
+                        {
+                            <span class="badge bg-danger rounded-pill">@ViewBag.ProcessingOrderCount</span>}
+                    </a>
+                </li>
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Index", "SanPhams")">Quản lý sản phẩm</a></li>
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("index", "nhanviens")">Quản lý nhân viên</a></li>
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Logout", "Accounts")">Đăng xuất</a></li>
+            </ul>
+        }
+        else if (!isEmployee)
+        {
+            <!-- Menu cho khách hàng -->
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Profile", "Accounts")">Thông tin tài khoản</a></li>
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EditPassword", "Accounts")">Đổi mật khẩu</a></li>
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("OrderManagement", "Order")">Thông tin đơn hàng</a></li>
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Logout", "Accounts")">Đăng xuất</a></li>
+            </ul>
+        }
+        else if (isEmployeeTransport)
+        {
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EmployeeOrderManagement", "Order")">Thông tin đơn hàng</a></li>
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Logout", "Accounts")">Đăng xuất</a></li>
+            </ul>
+        }
+        else
+        {
+            <!-- Menu cho nhân viên -->
+            <ul class="dropdown-menu">
+                <!-- Với nhân viên, bạn có thể chỉ cho phép đổi mật khẩu và quản lý các mục khác -->
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Create", "DirectOrder")">Tạo đơn hàng</a></li>
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EditPassword", "Accounts")">Đổi mật khẩu</a></li>
+                <li>
+                    <a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("EmployeeOrderManagement", "Order")">
+                        Quản lý đơn hàng
+                        @if (ViewBag.ProcessingOrderCount > 0)
+                        {
+                            <span class="badge bg-danger rounded-pill">@ViewBag.ProcessingOrderCount</span>}
+                    </a>
+                </li>
+
+                <li><a class="dropdown-item" style="padding-right: 0 !important;" href="@Url.Action("Logout", "Accounts")">Đăng xuất</a></li>
+            </ul>
+        }
+    </span>
+
+    @await Component.InvokeAsync("CartSummary")
+
 }
 

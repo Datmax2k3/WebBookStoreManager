@@ -219,8 +219,19 @@
                     @if (Model.PHIEUDAT.NguoiDung != null)
                     {
                         <p><strong>Tên khách hàng:</strong> @Model.PHIEUDAT.NguoiDung.TenNguoiDung</p>
-                        <p><strong>Số điện thoại:</strong> @(Model.PHIEUDAT.NguoiDung.soDienThoai ?? "Không có")</p>
+                        <p><strong>Số điện thoại giao hàng:</strong> @(Model.PHIEUDAT.DiaChiGiaoHang?.SdtGiaoHang ?? "Không có")</p>
                         <p><strong>Email:</strong> @(Model.PHIEUDAT.NguoiDung.Email ?? "Không có")</p>
+                        <p>
+                            <strong>Thanh toán:</strong>
+                            @if (Model.DONHANG.NgayThanhToan.HasValue)
+                            {
+                                <span class="text-success">Đã thanh toán</span>
+                            }
+                            else
+                            {
+                                <span class="text-danger">Chưa thanh toán</span>
+                            }
+                        </p>
                     }
                     else
                     {
@@ -244,6 +255,15 @@
                     else
                     {
                         <p class="text-muted">Đơn hàng bán trực tiếp tại cửa hàng</p>
+
+                        <form asp-action="DeleteOrder" asp-controller="Order" method="post"
+                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa đơn hàng này?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.PHIEUDAT.IdPhieuDat" />
+                            <button type="submit" class="btn btn-danger w-100 mt-2">
+                                <i class="fas fa-trash me-2"></i> Xóa đơn hàng
+                            </button>
+                        </form>
                     }
                 </div>
             </div>

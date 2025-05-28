@@ -30,6 +30,7 @@ namespace WebBookStoreManage.Controllers
                 {
                     var account = _context.TAIKHOAN
                         .Include(a => a.NhanVien)
+                        .ThenInclude(nv => nv.LoaiNhanVien)
                         .Include(a => a.VaiTro)
                         .FirstOrDefault(a => a.IdTaiKhoan == idTaiKhoan);
 
@@ -37,9 +38,11 @@ namespace WebBookStoreManage.Controllers
                     bool isEmployee = account?.NhanVien != null;
                     // Kiểm tra VaiTro: nếu tên vai trò là "admin" (không phân biệt chữ hoa, chữ thường)
                     bool isAdmin = account?.VaiTro?.TenVaiTro?.Equals("admin", StringComparison.OrdinalIgnoreCase) ?? false;
+                    bool isEmployeeTransport = account?.NhanVien?.LoaiNhanVien?.TenLoaiNhanVien.Equals("nhân viên giao hàng", StringComparison.OrdinalIgnoreCase) ?? false;
 
                     controller.ViewBag.IsEmployee = isEmployee;
                     controller.ViewBag.IsAdmin = isAdmin;
+                    controller.ViewBag.IsEmployeeTransport = isEmployeeTransport;
                 }
             }
         }

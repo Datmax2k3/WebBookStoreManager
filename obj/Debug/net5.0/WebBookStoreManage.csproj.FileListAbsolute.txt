@@ -306,3 +306,5 @@ D:\Workspace\N4_HK2\WebBookStoreManage\bin\Debug\net5.0\Microsoft.Extensions.Cac
 D:\Workspace\N4_HK2\WebBookStoreManage\bin\Debug\net5.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
 D:\Workspace\N4_HK2\WebBookStoreManage\bin\Debug\net5.0\Microsoft.Extensions.Logging.Abstractions.dll
 D:\Workspace\N4_HK2\WebBookStoreManage\bin\Debug\net5.0\Microsoft.Extensions.Options.dll
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Accounts\ForgotPassword.cshtml.g.cs
+D:\Workspace\N4_HK2\WebBookStoreManage\obj\Debug\net5.0\Razor\Views\Shared\Components\CartSummary\Default.cshtml.g.cs

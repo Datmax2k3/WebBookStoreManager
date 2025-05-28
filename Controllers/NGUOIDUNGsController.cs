@@ -20,12 +20,54 @@ namespace WebBookStoreManage.Controllers
         }
 
         // GET: NGUOIDUNGs
-        public async Task<IActionResult> Index()
+        // GET: NGUOIDUNGs
+        public async Task<IActionResult> Index(
+            string searchString,
+            string currentFilter,
+            int? pageNumber,
+            int pageSize = 10)
         {
-            var webBookStoreManageContext = _context.NGUOIDUNG
-                .Include(n => n.TaiKhoan);
-            return View(await webBookStoreManageContext.ToListAsync());
+            // Nếu có search mới, reset pageNumber về 1
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+
+            // 1. Build query và include tài khoản
+            var userQuery = _context.NGUOIDUNG
+                .Include(u => u.TaiKhoan)
+                .AsQueryable();
+
+            // 2. Áp dụng tìm kiếm không phân biệt hoa thường
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                var lower = searchString.ToLower();
+                userQuery = userQuery.Where(u =>
+                    u.TenNguoiDung.ToLower().Contains(lower) ||
+                    u.Email.ToLower().Contains(lower) ||
+                    (u.DiaChi != null && u.DiaChi.ToLower().Contains(lower)) ||
+                    (u.soDienThoai != null && u.soDienThoai.Contains(lower)) ||
+                    (u.TaiKhoan != null && u.TaiKhoan.TenDangNhap.ToLower().Contains(lower))
+                );
+            }
+
+            // 3. Sắp xếp (ví dụ theo tên)
+            userQuery = userQuery.OrderBy(u => u.TenNguoiDung);
+
+            // 4. Phân trang
+            var pagedUsers = await PaginatedList<NGUOIDUNG>
+                .CreateAsync(userQuery, pageNumber ?? 1, pageSize);
+
+            return View(pagedUsers);
         }
+
+
 
         // GET: NGUOIDUNGs/Details/5
         public async Task<IActionResult> Details(int? id)
